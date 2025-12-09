@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#4A90E2">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>家庭任务助手</title>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary-color: #4A90E2;
+            --success-color: #5CB85C;
+            --warning-color: #F0AD4E;
+            --danger-color: #D9534F;
+            --bg-color: #F5F7FA;
+            --card-bg: #FFFFFF;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --border-color: #E1E8ED;
+            --shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        
+        .container { max-width: 600px; margin: 0 auto; min-height: 100vh; background: var(--card-bg); }
+        .hidden { display: none !important; }
+        
+        /* 登录页面 */
+        #loginPage {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .login-card {
+            background: white; border-radius: 16px; padding: 40px 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2); width: 100%; max-width: 400px;
+        }
+        
+        .login-title { font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 10px; color: var(--primary-color); }
+        .login-subtitle { text-align: center; color: var(--text-secondary); margin-bottom: 30px; font-size: 14px; }
+        
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 500; }
+        .input-group input {
+            width: 100%; padding: 12px 16px; border: 2px solid var(--border-color);
+            border-radius: 8px; font-size: 16px;
+        }
+        .input-group input:focus { outline: none; border-color: var(--primary-color); }
+        
+        .btn {
+            width: 100%; padding: 14px; border: none; border-radius: 8px;
+            font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+        }
+        .btn-primary { background: var(--primary-color); color: white; }
+        .btn-primary:hover { background: #357ABD; transform: translateY(-2px); }
+        .btn-secondary { background: var(--text-secondary); color: white; margin-top: 10px; }
+        
+        .divider {
+            text-align: center; margin: 20px 0; color: var(--text-secondary); position: relative;
+        }
+        .divider::before, .divider::after {
+            content: ''; position: absolute; top: 50%; width: 40%; height: 1px;
+            background: var(--border-color);
+        }
+        .divider::before { left: 0; }
+        .divider::after { right: 0; }
+        
+        /* 头部 */
+        .header {
+            background: var(--primary-color); color: white; padding: 16px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .header-title { font-size: 20px; font-weight: 600; }
+        .role-badge {
+            background: rgba(255,255,255,0.2); padding: 4px 12px;
+            border-radius: 12px; font-size: 14px;
+        }
+        .header-actions { display: flex; gap: 10px; }
+        .icon-btn {
+            background: rgba(255,255,255,0.2); border: none; color: white;
+            width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        
+        /* 浮动按钮 */
+        .fab {
+            position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px;
+            background: var(--primary-color); border-radius: 50%; border: none;
+            color: white; font-size: 28px; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000;
+        }
+        .fab:hover { transform: scale(1.1); }
+        
+        /* 统计面板 */
+        .stats-panel {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+            padding: 20px; background: var(--bg-color);
+        }
+        .stat-card {
+            background: white; padding: 16px; border-radius: 12px;
+            text-align: center; box-shadow: var(--shadow);
+        }
+        .stat-value { font-size: 28px; font-weight: 700; color: var(--primary-color); }
+        .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+        
+        /* 任务列表 */
+        .task-list { padding: 0 20px 80px 20px; }
+        .task-section-title {
+            font-size: 14px; font-weight: 600; color: var(--text-secondary);
+            margin: 20px 0 10px 0; text-transform: uppercase;
+        }
+        
+        .task-card {
+            background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px;
+            box-shadow: var(--shadow); border-left: 4px solid transparent;
+        }
+        .task-card.priority-high { border-left-color: var(--danger-color); }
+        .task-card.priority-medium { border-left-color: var(--warning-color); }
+        .task-card.priority-low { border-left-color: var(--success-color); }
+        .task-card.completed { opacity: 0.6; background: #f9f9f9; }
+        
+        .task-header { display: flex; align-items: flex-start; gap: 12px; }
+        .task-checkbox {
+            width: 24px; height: 24px; min-width: 24px; border: 2px solid var(--border-color);
+            border-radius: 6px; cursor: pointer; display: flex; align-items: center;
+            justify-content: center;
+        }
+        .task-checkbox:hover { border-color: var(--primary-color); }
+        .task-checkbox.checked {
+            background: var(--success-color); border-color: var(--success-color);
+        }
+        .task-checkbox.checked::after {
+            content: '✓'; color: white; font-size: 16px; font-weight: bold;
+        }
+        
+        .task-content { flex: 1; }
+        .task-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+        .task-title.completed { text-decoration: line-through; color: var(--text-secondary); }
+        .task-description { font-size: 14px; color: var(--text-secondary); margin-bottom: 8px; }
+        
+        .task-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+        .task-tag {
+            display: inline-block; padding: 4px 10px; background: var(--bg-color);
+            border-radius: 12px; font-size: 12px; color: var(--text-secondary);
+        }
+        .task-due-date { font-size: 12px; color: var(--text-secondary); }
+        .task-due-date.overdue { color: var(--danger-color); font-weight: 600; }
+        
+        .task-attachments { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+        .attachment-item {
+            padding: 6px 12px; background: var(--bg-color); border-radius: 8px;
+            font-size: 13px; color: var(--primary-color); cursor: pointer;
+        }
+        .attachment-item:hover { background: #e3f2fd; }
+        
+        /* 模态框 */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: white; border-radius: 16px; padding: 24px;
+            width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto;
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+        }
+        .modal-title { font-size: 20px; font-weight: 600; }
+        .close-btn {
+            background: none; border: none; font-size: 28px;
+            cursor: pointer; color: var(--text-secondary);
+        }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
+        .form-group input[type="text"],
+        .form-group input[type="date"],
+        .form-group textarea,
+        .form-group select {
+            width: 100%; padding: 10px 12px; border: 2px solid var(--border-color);
+            border-radius: 8px; font-size: 14px;
+        }
+        .form-group textarea { min-height: 80px; resize: vertical; }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus { outline: none; border-color: var(--primary-color); }
+        
+        .file-upload {
+            border: 2px dashed var(--border-color); border-radius: 8px; padding: 20px;
+            text-align: center; cursor: pointer;
+        }
+        .file-upload:hover { border-color: var(--primary-color); background: var(--bg-color); }
+        .file-upload input { display: none; }
+        
+        .uploaded-files { margin-top: 12px; }
+        .uploaded-file {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 12px; background: var(--bg-color); border-radius: 8px; margin-bottom: 8px;
+        }
+        .remove-file {
+            background: var(--danger-color); color: white; border: none;
+            width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
+        }
+        
+        .empty-state {
+            text-align: center; padding: 60px 20px; color: var(--text-secondary);
+        }
+        .empty-state-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.3; }
+        
+        .toast {
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); color: white; padding: 12px 24px;
+            border-radius: 24px; font-size: 14px; z-index: 3000; opacity: 0;
+        }
+        .toast.show { opacity: 1; }
+        
+        @media (max-width: 480px) {
+            .stats-panel { grid-template-columns: repeat(2, 1fr); }
+            .stat-card:last-child { grid-column: 1 / -1; }
+        }
+    </style>
+</head>
+<body>
+    <div id="loginPage">
+        <div class="login-card">
+            <h1 class="login-title">👨‍👧 家庭任务助手</h1>
+            <p class="login-subtitle">让任务管理更简单</p>
+            
+            <div id="loginForm">
+                <div class="input-group">
+                    <label>家庭邀请码</label>
+                    <input type="text" id="inviteCodeInput" placeholder="输入6位邀请码" maxlength="6">
+                </div>
+                <button class="btn btn-primary" onclick="loginWithCode()">登录</button>
+                <div class="divider">或</div>
+                <button class="btn btn-secondary" onclick="createFamily()">创建新家庭</button>
+            </div>
+
+            <div id="roleSelection" class="hidden">
+                <p style="text-align: center; margin-bottom: 20px; color: var(--text-secondary);">请选择你的角色</p>
+                <button class="btn btn-primary" onclick="selectRole('parent')">👨‍💼 家长模式</button>
+                <button class="btn btn-secondary" onclick="selectRole('child')">👧 孩子模式</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="mainApp" class="hidden">
+        <div class="container">
+            <div class="header">
+                <div>
+                    <div class="header-title">家庭任务</div>
+                    <div class="role-badge" id="roleBadge"></div>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn" onclick="switchRole()" title="切换角色">🔄</button>
+                    <button class="icon-btn" onclick="logout()" title="退出">🚪</button>
+                </div>
+            </div>
+
+            <div id="statsPanel" class="stats-panel hidden">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalTasks">0</div>
+                    <div class="stat-label">总任务</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="completedTasks">0</div>
+                    <div class="stat-label">已完成</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="completionRate">0%</div>
+                    <div class="stat-label">完成率</div>
+                </div>
+            </div>
+
+            <div class="task-list" id="taskList">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📝</div>
+                    <div>加载中...</div>
+                </div>
+            </div>
+
+            <button id="createTaskBtn" class="fab hidden" onclick="openCreateTaskModal()">+</button>
+        </div>
+    </div>
+
+    <div id="createTaskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">创建新任务</h2>
+                <button class="close-btn" onclick="closeCreateTaskModal()">&times;</button>
+            </div>
+            
+            <form id="taskForm" onsubmit="createTask(event)">
+                <div class="form-group">
+                    <label>任务标题 *</label>
+                    <input type="text" id="taskTitle" required placeholder="例如:完成数学作业">
+                </div>
+
+                <div class="form-group">
+                    <label>任务描述</label>
+                    <textarea id="taskDescription" placeholder="详细说明任务要求..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>截止日期</label>
+                    <input type="date" id="taskDueDate">
+                </div>
+
+                <div class="form-group">
+                    <label>优先级</label>
+                    <select id="taskPriority">
+                        <option value="low">低</option>
+                        <option value="medium" selected>中</option>
+                        <option value="high">高</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>标签(用逗号分隔)</label>
+                    <input type="text" id="taskTags" placeholder="例如:作业,数学">
+                </div>
+
+                <div class="form-group">
+                    <label>上传附件</label>
+                    <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                        <div>📎 点击上传文件</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">支持PDF、图片、音频、视频</div>
+                        <input type="file" id="fileInput" multiple accept=".pdf,.jpg,.jpeg,.png,.gif,.mp3,.mp4,.wav" onchange="handleFileSelect(event)">
+                    </div>
+                    <div id="uploadedFilesList" class="uploaded-files"></div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">创建任务</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="attachmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="attachmentTitle">查看附件</h2>
+                <button class="close-btn" onclick="closeAttachmentModal()">&times;</button>
+            </div>
+            <div id="attachmentContent"></div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.15.2/dist/av-min.js"></script>
+    
+    <script>
+        // ========== LeanCloud 配置 ==========
+        const LEANCLOUD_APP_ID = '63f8haa3tIFFuiTc2HeDuEyU-gzGzoHsz';
+        const LEANCLOUD_APP_KEY = 'SXeVLTnReJKeptXMnlR98Z8J';
+        //const LEANCLOUD_SERVER_URL = 'https://YOUR_SERVER_URL.lc-cn-n1-shared.com';
+
+        AV.init({
+            appId: LEANCLOUD_APP_ID,
+            appKey: LEANCLOUD_APP_KEY,
+            //serverURL: LEANCLOUD_SERVER_URL
+        });
+
+        let currentUser = null, currentRole = null, currentFamily = null;
+        let tasks = [], uploadedFiles = [];
+
+        async function createFamily() {
+            try {
+                showToast('正在创建家庭...');
+                const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+                const Family = AV.Object.extend('Family');
+                const family = new Family();
+                family.set('inviteCode', inviteCode);
+                family.set('createdAt', new Date());
+                await family.save();
+                localStorage.setItem('familyId', family.id);
+                localStorage.setItem('inviteCode', inviteCode);
+                alert(`家庭创建成功!\n\n邀请码:${inviteCode}\n\n请将此邀请码分享给孩子`);
+                currentFamily = family;
+                showRoleSelection();
+            } catch (error) {
+                console.error('创建家庭失败:', error);
+                showToast('创建失败,请重试');
+            }
+        }
+
+        async function loginWithCode() {
+            const code = document.getElementById('inviteCodeInput').value.trim().toUpperCase();
+            if (!code || code.length !== 6) {
+                showToast('请输入6位邀请码');
+                return;
+            }
+            try {
+                showToast('正在验证邀请码...');
+                const query = new AV.Query('Family');
+                query.equalTo('inviteCode', code);
+                const family = await query.first();
+                if (!family) {
+                    showToast('邀请码无效');
+                    return;
+                }
+                localStorage.setItem('familyId', family.id);
+                localStorage.setItem('inviteCode', code);
+                currentFamily = family;
+                showRoleSelection();
+            } catch (error) {
+                console.error('登录失败:', error);
+                showToast('登录失败,请重试');
+            }
+        }
+
+        function showRoleSelection() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('roleSelection').classList.remove('hidden');
+        }
+
+        function selectRole(role) {
+            currentRole = role;
+            localStorage.setItem('userRole', role);
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            initApp();
+        }
+
+        function switchRole() {
+            const newRole = currentRole === 'parent' ? 'child' : 'parent';
+            selectRole(newRole);
+        }
+
+        function logout() {
+            if (confirm('确定要退出吗?')) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        async function initApp() {
+            const roleBadge = document.getElementById('roleBadge');
+            roleBadge.textContent = currentRole === 'parent' ? '👨‍💼 家长' : '👧 孩子';
+            
+            if (currentRole === 'parent') {
+                document.getElementById('statsPanel').classList.remove('hidden');
+                document.getElementById('createTaskBtn').classList.remove('hidden');
+            } else {
+                document.getElementById('statsPanel').classList.add('hidden');
+                document.getElementById('createTaskBtn').classList.add('hidden');
+            }
+            
+            await loadTasks();
+            setupRealtimeSync();
+        }
+
+        async function loadTasks() {
+            try {
+                const familyId = localStorage.getItem('familyId');
+                const query = new AV.Query('Task');
+                query.equalTo('familyId', familyId);
+                query.descending('createdAt');
+                const results = await query.find();
+                tasks = results.map(obj => ({
+                    id: obj.id,
+                    ...obj.toJSON()
+                }));
+                renderTasks();
+                updateStats();
+            } catch (error) {
+                console.error('加载任务失败:', error);
+                showToast('加载失败');
+            }
+        }
+
+        function renderTasks() {
+            const taskList = document.getElementById('taskList');
+            if (tasks.length === 0) {
+                taskList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <div>还没有任务</div>
+                        ${currentRole === 'parent' ? '<div style="margin-top: 8px; font-size: 14px;">点击右下角 + 创建任务</div>' : ''}
+                    </div>
+                `;
+                return;
+            }
+            
+            const pending = tasks.filter(t => !t.completed);
+            const completed = tasks.filter(t => t.completed);
+            let html = '';
+            
+            if (pending.length > 0) {
+                html += '<div class="task-section-title">待完成</div>';
+                pending.forEach(task => { html += renderTaskCard(task); });
+            }
+            
+            if (completed.length > 0) {
+                html += '<div class="task-section-title">已完成</div>';
+                completed.forEach(task => { html += renderTaskCard(task); });
+            }
+            
+            taskList.innerHTML = html;
+        }
+
+        function renderTaskCard(task) {
+            const dueDate = task.dueDate ? new Date(task.dueDate) : null;
+            const isOverdue = dueDate && dueDate < new Date() && !task.completed;
+            
+            return `
+                <div class="task-card priority-${task.priority} ${task.completed ? 'completed' : ''}">
+                    <div class="task-header">
+                        <div class="task-checkbox ${task.completed ? 'checked' : ''}" 
+                             onclick="toggleTask('${task.id}')"></div>
+                        <div class="task-content">
+                            <div class="task-title ${task.completed ? 'completed' : ''}">
+                                ${escapeHtml(task.title)}
+                            </div>
+                            ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ''}
+                            <div class="task-meta">
+                                ${task.tags && task.tags.length > 0 ? task.tags.map(tag => 
+                                    `<span class="task-tag">#${escapeHtml(tag)}</span>`
+                                ).join('') : ''}
+                                ${dueDate ? `
+                                    <div class="task-due-date ${isOverdue ? 'overdue' : ''}">
+                                        📅 ${formatDate(dueDate)}
+                                    </div>
+                                ` : ''}
+                            </div>
+                            ${task.attachments && task.attachments.length > 0 ? `
+                                <div class="task-attachments">
+                                    ${task.attachments.map((att, idx) => `
+                                        <div class="attachment-item" onclick="viewAttachment('${task.id}', ${idx})">
+                                            ${getFileIcon(att.type)} ${escapeHtml(att.name)}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function toggleTask(taskId) {
+            try {
+                const task = tasks.find(t => t.id === taskId);
+                if (!task) return;
+                const Task = AV.Object.createWithoutData('Task', taskId);
+                Task.set('completed', !task.completed);
+                Task.set('completedAt', !task.completed ? new Date() : null);
+                await Task.save();
+                task.completed = !task.completed;
+                task.completedAt = task.completed ? new Date() : null;
+                renderTasks();
+                updateStats();
+                showToast(task.completed ? '✓ 任务已完成' : '任务标记为未完成');
+            } catch (error) {
+                console.error('更新任务失败:', error);
+                showToast('操作失败');
+            }
+        }
+
+        function updateStats() {
+            if (currentRole !== 'parent') return;
+            const total = tasks.length;
+            const completed = tasks.filter(t => t.completed).length;
+            const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+            document.getElementById('totalTasks').textContent = total;
+            document.getElementById('completedTasks').textContent = completed;
+            document.getElementById('completionRate').textContent = rate + '%';
+        }
+
+        function openCreateTaskModal() {
+            document.getElementById('createTaskModal').classList.add('active');
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('taskDueDate').value = tomorrow.toISOString().split('T')[0];
+        }
+
+        function closeCreateTaskModal() {
+            document.getElementById('createTaskModal').classList.remove('active');
+            document.getElementById('taskForm').reset();
+            uploadedFiles = [];
+            document.getElementById('uploadedFilesList').innerHTML = '';
+        }
+
+        async function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            for (const file of files) {
+                if (file.size > 10 * 1024 * 1024) {
+                    showToast(`${file.name} 超过10MB限制`);
+                    continue;
+                }
+                try {
+                    showToast('正在上传...');
+                    const avFile = new AV.File(file.name, file);
+                    await avFile.save();
+                    uploadedFiles.push({
+                        name: file.name,
+                        url: avFile.url(),
+                        type: file.type
+                    });
+                    renderUploadedFiles();
+                    showToast(`${file.name} 上传成功`);
+                } catch (error) {
+                    console.error('上传失败:', error);
+                    showToast(`${file.name} 上传失败`);
+                }
+            }
+            event.target.value = '';
+        }
+
+        function renderUploadedFiles() {
+            const list = document.getElementById('uploadedFilesList');
+            list.innerHTML = uploadedFiles.map((file, idx) => `
+                <div class="uploaded-file">
+                    <span>${getFileIcon(file.type)} ${escapeHtml(file.name)}</span>
+                    <button type="button" class="remove-file" onclick="removeFile(${idx})">&times;</button>
+                </div>
+            `).join('');
+        }
+
+        function removeFile(index) {
+            uploadedFiles.splice(index, 1);
+            renderUploadedFiles();
+        }
+
+        async function createTask(event) {
+            event.preventDefault();
+            try {
+                showToast('正在创建任务...');
+                const title = document.getElementById('taskTitle').value.trim();
+                const description = document.getElementById('taskDescription').value.trim();
+                const dueDate = document.getElementById('taskDueDate').value;
+                const priority = document.getElementById('taskPriority').value;
+                const tagsInput = document.getElementById('taskTags').value.trim();
+                const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(t => t) : [];
+                
+                const Task = AV.Object.extend('Task');
+                const task = new Task();
+                task.set('familyId', localStorage.getItem('familyId'));
+                task.set('title', title);
+                task.set('description', description);
+                task.set('dueDate', dueDate ? new Date(dueDate) : null);
+                task.set('priority', priority);
+                task.set('tags', tags);
+                task.set('attachments', uploadedFiles);
+                task.set('completed', false);
+                task.set('createdBy', 'parent');
+                await task.save();
+                showToast('✓ 任务创建成功');
+                closeCreateTaskModal();
+                await loadTasks();
+            } catch (error) {
+                console.error('创建任务失败:', error);
+                showToast('创建失败,请重试');
+            }
+        }
+
+        function viewAttachment(taskId, attachmentIndex) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task || !task.attachments || !task.attachments[attachmentIndex]) return;
+            const attachment = task.attachments[attachmentIndex];
+            const modal = document.getElementById('attachmentModal');
+            const title = document.getElementById('attachmentTitle');
+            const content = document.getElementById('attachmentContent');
+            title.textContent = attachment.name;
+            
+            if (attachment.type.startsWith('image/')) {
+                content.innerHTML = `<img src="${attachment.url}" alt="${escapeHtml(attachment.name)}" style="max-width: 100%;">`;
+            } else if (attachment.type.startsWith('video/')) {
+                content.innerHTML = `<video controls src="${attachment.url}" style="width: 100%; border-radius: 8px;"></video>`;
+            } else if (attachment.type.startsWith('audio/')) {
+                content.innerHTML = `<audio controls src="${attachment.url}" style="width: 100%;"></audio>`;
+            } else if (attachment.type === 'application/pdf') {
+                content.innerHTML = `<iframe src="${attachment.url}" style="width: 100%; height: 70vh; border: none; border-radius: 8px;"></iframe>`;
+            } else {
+                content.innerHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">📄</div>
+                        <div>无法预览此文件类型</div>
+                        <a href="${attachment.url}" target="_blank" style="color: var(--primary-color); margin-top: 12px; display: inline-block;">下载文件</a>
+                    </div>
+                `;
+            }
+            modal.classList.add('active');
+        }
+
+        function closeAttachmentModal() {
+            document.getElementById('attachmentModal').classList.remove('active');
+        }
+
+        function setupRealtimeSync() {
+            setInterval(async () => {
+                await loadTasks();
+            }, 30000);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 2000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDate(date) {
+            const d = new Date(date);
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            if (d.toDateString() === today.toDateString()) return '今天';
+            if (d.toDateString() === tomorrow.toDateString()) return '明天';
+            return `${d.getMonth() + 1}月${d.getDate()}日`;
+        }
+
+        function getFileIcon(type) {
+            if (type.startsWith('image/')) return '🖼️';
+            if (type.startsWith('video/')) return '🎬';
+            if (type.startsWith('audio/')) return '🎵';
+            if (type === 'application/pdf') return '📄';
+            return '📎';
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const familyId = localStorage.getItem('familyId');
+            const userRole = localStorage.getItem('userRole');
+            if (familyId && userRole) {
+                currentRole = userRole;
+                currentFamily = { id: familyId };
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                initApp();
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (e.target.tagName === 'A' && e.target.href && !e.target.href.startsWith('data:')) {
+                e.preventDefault();
+                showToast('为了安全,已禁用外部链接');
+            }
+        });
+    </script>
+</body>
+</html>
