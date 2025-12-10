@@ -362,9 +362,9 @@
     
     <script>
         // ========== LeanCloud 配置 ==========
-        const LEANCLOUD_APP_ID = '63f8haa3tIFFuiTc2HeDuEyU-gzGzoHsz';
-        const LEANCLOUD_APP_KEY = 'SXeVLTnReJKeptXMnlR98Z8J';
-        //const LEANCLOUD_SERVER_URL = 'https://YOUR_SERVER_URL.lc-cn-n1-shared.com';
+        const LEANCLOUD_APP_ID = 'YOUR_APP_ID';
+        const LEANCLOUD_APP_KEY = 'YOUR_APP_KEY';
+        const LEANCLOUD_SERVER_URL = 'https://YOUR_SERVER_URL.lc-cn-n1-shared.com';
 
         AV.init({
             appId: '63f8haa3tIFFuiTc2HeDuEyU-gzGzoHsz',
@@ -382,7 +382,6 @@
                 const Family = AV.Object.extend('Family');
                 const family = new Family();
                 family.set('inviteCode', inviteCode);
-                //family.set('createdAt', new Date());
                 await family.save();
                 localStorage.setItem('familyId', family.id);
                 localStorage.setItem('inviteCode', inviteCode);
