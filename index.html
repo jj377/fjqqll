@@ -382,7 +382,7 @@
                 const Family = AV.Object.extend('Family');
                 const family = new Family();
                 family.set('inviteCode', inviteCode);
-                family.set('createdAt', new Date());
+                //family.set('createdAt', new Date());
                 await family.save();
                 localStorage.setItem('familyId', family.id);
                 localStorage.setItem('inviteCode', inviteCode);
