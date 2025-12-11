@@ -8,6 +8,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>家庭任务助手</title>
     
+    <!-- PWA Manifest Link -->
+    <link rel="manifest" href="manifest.txt">
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -225,13 +228,66 @@
         }
         .toast.show { opacity: 1; }
         
+        /* 系统架构模态框样式 - 新增 */
+        .architecture-modal .modal-content {
+            max-width: 90%;
+            max-height: 90vh;
+            padding: 20px;
+        }
+        .architecture-modal img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            display: block;
+            margin: 0 auto;
+        }
+        .architecture-caption {
+            text-align: center;
+            margin-top: 12px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        /* 附件预览增强样式 - 新增 */
+        .preview-iframe {
+            width: 100%;
+            height: 70vh;
+            border: none;
+            border-radius: 8px;
+        }
+        .preview-fallback {
+            text-align: center;
+            padding: 40px;
+        }
+        .preview-fallback-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        .download-btn {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 10px 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+        }
+        .download-btn:hover {
+            background: #357ABD;
+        }
+        
         @media (max-width: 480px) {
             .stats-panel { grid-template-columns: repeat(2, 1fr); }
             .stat-card:last-child { grid-column: 1 / -1; }
+            .preview-iframe { height: 50vh; }
         }
     </style>
 </head>
 <body>
+    <!-- 登录页面 -->
     <div id="loginPage">
         <div class="login-card">
             <h1 class="login-title">👨‍👧 家庭任务助手</h1>
@@ -255,19 +311,24 @@
         </div>
     </div>
 
+    <!-- 主应用界面 -->
     <div id="mainApp" class="hidden">
         <div class="container">
+            <!-- 头部导航 -->
             <div class="header">
                 <div>
                     <div class="header-title">家庭任务</div>
                     <div class="role-badge" id="roleBadge"></div>
                 </div>
                 <div class="header-actions">
+                    <!-- 新增系统架构按钮 -->
+                    <button class="icon-btn" onclick="openArchitectureModal()" title="系统架构">🏗️</button>
                     <button class="icon-btn" onclick="switchRole()" title="切换角色">🔄</button>
                     <button class="icon-btn" onclick="logout()" title="退出">🚪</button>
                 </div>
             </div>
 
+            <!-- 统计面板 -->
             <div id="statsPanel" class="stats-panel hidden">
                 <div class="stat-card">
                     <div class="stat-value" id="totalTasks">0</div>
@@ -283,6 +344,7 @@
                 </div>
             </div>
 
+            <!-- 任务列表 -->
             <div class="task-list" id="taskList">
                 <div class="empty-state">
                     <div class="empty-state-icon">📝</div>
@@ -290,10 +352,12 @@
                 </div>
             </div>
 
+            <!-- 创建任务浮动按钮 -->
             <button id="createTaskBtn" class="fab hidden" onclick="openCreateTaskModal()">+</button>
         </div>
     </div>
 
+    <!-- 创建任务模态框 -->
     <div id="createTaskModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -335,8 +399,13 @@
                     <label>上传附件</label>
                     <div class="file-upload" onclick="document.getElementById('fileInput').click()">
                         <div>📎 点击上传文件</div>
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">支持PDF、图片、音频、视频</div>
-                        <input type="file" id="fileInput" multiple accept=".pdf,.jpg,.jpeg,.png,.gif,.mp3,.mp4,.wav" onchange="handleFileSelect(event)">
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">
+                            支持PDF、DOCX、图片、音频、视频
+                        </div>
+                        <!-- 更新文件类型接受列表，增加DOCX和PDF支持 -->
+                        <input type="file" id="fileInput" multiple 
+                               accept=".pdf,.docx,.doc,.jpg,.jpeg,.png,.gif,.mp3,.mp4,.wav,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
+                               onchange="handleFileSelect(event)">
                     </div>
                     <div id="uploadedFilesList" class="uploaded-files"></div>
                 </div>
@@ -346,6 +415,7 @@
         </div>
     </div>
 
+    <!-- 附件预览模态框 -->
     <div id="attachmentModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -356,137 +426,212 @@
         </div>
     </div>
 
+    <!-- 系统架构模态框 - 新增 -->
+    <div id="architectureModal" class="modal architecture-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">系统架构</h2>
+                <button class="close-btn" onclick="closeArchitectureModal()">&times;</button>
+            </div>
+            <div style="text-align: center;">
+                <img src="../My%20First%20Project/flink_architecture_diagram.png" 
+                     alt="Flink Architecture Diagram"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <div class="preview-fallback" style="display: none;">
+                    <div class="preview-fallback-icon">🏗️</div>
+                    <div>架构图加载失败</div>
+                </div>
+                <p class="architecture-caption">Flink Architecture Diagram</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 -->
     <div id="toast" class="toast"></div>
 
+    <!-- LeanCloud SDK -->
     <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.15.2/dist/av-min.js"></script>
     
     <script>
         // ========== LeanCloud 配置 ==========
-        const LEANCLOUD_APP_ID = 'YOUR_APP_ID';
-        const LEANCLOUD_APP_KEY = 'YOUR_APP_KEY';
-        const LEANCLOUD_SERVER_URL = 'https://YOUR_SERVER_URL.lc-cn-n1-shared.com';
+        // 请替换为您的实际配置信息
+        const LEANCLOUD_APP_ID = `YOUR_APP_ID`;
+        const LEANCLOUD_APP_KEY = `YOUR_APP_KEY`;
+        const LEANCLOUD_SERVER_URL = `https://YOUR_SERVER_URL.lc-cn-n1-shared.com`;
 
+        // 初始化LeanCloud
         AV.init({
-            appId: '63f8haa3tIFFuiTc2HeDuEyU-gzGzoHsz',
-            appKey: 'SXeVLTnReJKeptXMnlR98Z8J',
-            serverURL: 'https://63f8haa3.lc-cn-n1-shared.com'
+            appId: LEANCLOUD_APP_ID,
+            appKey: LEANCLOUD_APP_KEY,
+            serverURL: LEANCLOUD_SERVER_URL
         });
 
-        let currentUser = null, currentRole = null, currentFamily = null;
-        let tasks = [], uploadedFiles = [];
+        // ========== 全局变量 ==========
+        let currentUser = null;
+        let currentRole = null;
+        let currentFamily = null;
+        let tasks = [];
+        let uploadedFiles = [];
 
+        // ========== 家庭管理功能 ==========
+        
+        /**
+         * 创建新家庭
+         * 生成6位随机邀请码并保存到LeanCloud
+         */
         async function createFamily() {
             try {
-                showToast('正在创建家庭...');
+                showToast(`正在创建家庭...`);
                 const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-                const Family = AV.Object.extend('Family');
+                const Family = AV.Object.extend(`Family`);
                 const family = new Family();
-                family.set('inviteCode', inviteCode);
+                family.set(`inviteCode`, inviteCode);
+                family.set(`createdAt`, new Date());
                 await family.save();
-                localStorage.setItem('familyId', family.id);
-                localStorage.setItem('inviteCode', inviteCode);
+                
+                localStorage.setItem(`familyId`, family.id);
+                localStorage.setItem(`inviteCode`, inviteCode);
+                
                 alert(`家庭创建成功!\n\n邀请码:${inviteCode}\n\n请将此邀请码分享给孩子`);
                 currentFamily = family;
                 showRoleSelection();
             } catch (error) {
-                console.error('创建家庭失败:', error);
-                showToast('创建失败,请重试');
+                console.error(`创建家庭失败:`, error);
+                showToast(`创建失败,请重试`);
             }
         }
 
+        /**
+         * 使用邀请码登录
+         * 验证邀请码并加入对应家庭
+         */
         async function loginWithCode() {
-            const code = document.getElementById('inviteCodeInput').value.trim().toUpperCase();
+            const code = document.getElementById(`inviteCodeInput`).value.trim().toUpperCase();
             if (!code || code.length !== 6) {
-                showToast('请输入6位邀请码');
+                showToast(`请输入6位邀请码`);
                 return;
             }
+            
             try {
-                showToast('正在验证邀请码...');
-                const query = new AV.Query('Family');
-                query.equalTo('inviteCode', code);
+                showToast(`正在验证邀请码...`);
+                const query = new AV.Query(`Family`);
+                query.equalTo(`inviteCode`, code);
                 const family = await query.first();
+                
                 if (!family) {
-                    showToast('邀请码无效');
+                    showToast(`邀请码无效`);
                     return;
                 }
-                localStorage.setItem('familyId', family.id);
-                localStorage.setItem('inviteCode', code);
+                
+                localStorage.setItem(`familyId`, family.id);
+                localStorage.setItem(`inviteCode`, code);
                 currentFamily = family;
                 showRoleSelection();
             } catch (error) {
-                console.error('登录失败:', error);
-                showToast('登录失败,请重试');
+                console.error(`登录失败:`, error);
+                showToast(`登录失败,请重试`);
             }
         }
 
+        /**
+         * 显示角色选择界面
+         */
         function showRoleSelection() {
-            document.getElementById('loginForm').classList.add('hidden');
-            document.getElementById('roleSelection').classList.remove('hidden');
+            document.getElementById(`loginForm`).classList.add(`hidden`);
+            document.getElementById(`roleSelection`).classList.remove(`hidden`);
         }
 
+        /**
+         * 选择用户角色（家长/孩子）
+         * @param {string} role - 角色类型 'parent' 或 'child'
+         */
         function selectRole(role) {
             currentRole = role;
-            localStorage.setItem('userRole', role);
-            document.getElementById('loginPage').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
+            localStorage.setItem(`userRole`, role);
+            document.getElementById(`loginPage`).classList.add(`hidden`);
+            document.getElementById(`mainApp`).classList.remove(`hidden`);
             initApp();
         }
 
+        /**
+         * 切换用户角色
+         */
         function switchRole() {
-            const newRole = currentRole === 'parent' ? 'child' : 'parent';
+            const newRole = currentRole === `parent` ? `child` : `parent`;
             selectRole(newRole);
         }
 
+        /**
+         * 退出登录
+         */
         function logout() {
-            if (confirm('确定要退出吗?')) {
+            if (confirm(`确定要退出吗?`)) {
                 localStorage.clear();
                 location.reload();
             }
         }
 
+        // ========== 应用初始化 ==========
+        
+        /**
+         * 初始化主应用
+         * 根据角色显示不同的界面元素
+         */
         async function initApp() {
-            const roleBadge = document.getElementById('roleBadge');
-            roleBadge.textContent = currentRole === 'parent' ? '👨‍💼 家长' : '👧 孩子';
+            const roleBadge = document.getElementById(`roleBadge`);
+            roleBadge.textContent = currentRole === `parent` ? `👨‍💼 家长` : `👧 孩子`;
             
-            if (currentRole === 'parent') {
-                document.getElementById('statsPanel').classList.remove('hidden');
-                document.getElementById('createTaskBtn').classList.remove('hidden');
+            // 家长模式显示统计面板和创建按钮
+            if (currentRole === `parent`) {
+                document.getElementById(`statsPanel`).classList.remove(`hidden`);
+                document.getElementById(`createTaskBtn`).classList.remove(`hidden`);
             } else {
-                document.getElementById('statsPanel').classList.add('hidden');
-                document.getElementById('createTaskBtn').classList.add('hidden');
+                document.getElementById(`statsPanel`).classList.add(`hidden`);
+                document.getElementById(`createTaskBtn`).classList.add(`hidden`);
             }
             
             await loadTasks();
             setupRealtimeSync();
         }
 
+        // ========== 任务管理功能 ==========
+        
+        /**
+         * 从LeanCloud加载任务列表
+         */
         async function loadTasks() {
             try {
-                const familyId = localStorage.getItem('familyId');
-                const query = new AV.Query('Task');
-                query.equalTo('familyId', familyId);
-                query.descending('createdAt');
+                const familyId = localStorage.getItem(`familyId`);
+                const query = new AV.Query(`Task`);
+                query.equalTo(`familyId`, familyId);
+                query.descending(`createdAt`);
                 const results = await query.find();
+                
                 tasks = results.map(obj => ({
                     id: obj.id,
                     ...obj.toJSON()
                 }));
+                
                 renderTasks();
                 updateStats();
             } catch (error) {
-                console.error('加载任务失败:', error);
-                showToast('加载失败');
+                console.error(`加载任务失败:`, error);
+                showToast(`加载失败`);
             }
         }
 
+        /**
+         * 渲染任务列表
+         */
         function renderTasks() {
-            const taskList = document.getElementById('taskList');
+            const taskList = document.getElementById(`taskList`);
+            
             if (tasks.length === 0) {
                 taskList.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">📝</div>
                         <div>还没有任务</div>
-                        ${currentRole === 'parent' ? '<div style="margin-top: 8px; font-size: 14px;">点击右下角 + 创建任务</div>' : ''}
+                        ${currentRole === `parent` ? `<div style="margin-top: 8px; font-size: 14px;">点击右下角 + 创建任务</div>` : ``}
                     </div>
                 `;
                 return;
@@ -494,264 +639,472 @@
             
             const pending = tasks.filter(t => !t.completed);
             const completed = tasks.filter(t => t.completed);
-            let html = '';
+            let html = ``;
             
             if (pending.length > 0) {
-                html += '<div class="task-section-title">待完成</div>';
+                html += `<div class="task-section-title">待完成</div>`;
                 pending.forEach(task => { html += renderTaskCard(task); });
             }
             
             if (completed.length > 0) {
-                html += '<div class="task-section-title">已完成</div>';
+                html += `<div class="task-section-title">已完成</div>`;
                 completed.forEach(task => { html += renderTaskCard(task); });
             }
             
             taskList.innerHTML = html;
         }
 
+        /**
+         * 渲染单个任务卡片
+         * @param {Object} task - 任务对象
+         * @returns {string} HTML字符串
+         */
         function renderTaskCard(task) {
             const dueDate = task.dueDate ? new Date(task.dueDate) : null;
             const isOverdue = dueDate && dueDate < new Date() && !task.completed;
             
             return `
-                <div class="task-card priority-${task.priority} ${task.completed ? 'completed' : ''}">
+                <div class="task-card priority-${task.priority} ${task.completed ? `completed` : ``}">
                     <div class="task-header">
-                        <div class="task-checkbox ${task.completed ? 'checked' : ''}" 
+                        <div class="task-checkbox ${task.completed ? `checked` : ``}" 
                              onclick="toggleTask('${task.id}')"></div>
                         <div class="task-content">
-                            <div class="task-title ${task.completed ? 'completed' : ''}">
+                            <div class="task-title ${task.completed ? `completed` : ``}">
                                 ${escapeHtml(task.title)}
                             </div>
-                            ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ''}
+                            ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ``}
                             <div class="task-meta">
                                 ${task.tags && task.tags.length > 0 ? task.tags.map(tag => 
                                     `<span class="task-tag">#${escapeHtml(tag)}</span>`
-                                ).join('') : ''}
+                                ).join(``) : ``}
                                 ${dueDate ? `
-                                    <div class="task-due-date ${isOverdue ? 'overdue' : ''}">
+                                    <div class="task-due-date ${isOverdue ? `overdue` : ``}">
                                         📅 ${formatDate(dueDate)}
                                     </div>
-                                ` : ''}
+                                ` : ``}
                             </div>
                             ${task.attachments && task.attachments.length > 0 ? `
                                 <div class="task-attachments">
                                     ${task.attachments.map((att, idx) => `
                                         <div class="attachment-item" onclick="viewAttachment('${task.id}', ${idx})">
-                                            ${getFileIcon(att.type)} ${escapeHtml(att.name)}
+                                            ${getFileIcon(att.type, att.name)} ${escapeHtml(att.name)}
                                         </div>
-                                    `).join('')}
+                                    `).join(``)}
                                 </div>
-                            ` : ''}
+                            ` : ``}
                         </div>
                     </div>
                 </div>
             `;
         }
 
+        /**
+         * 切换任务完成状态
+         * @param {string} taskId - 任务ID
+         */
         async function toggleTask(taskId) {
             try {
                 const task = tasks.find(t => t.id === taskId);
                 if (!task) return;
-                const Task = AV.Object.createWithoutData('Task', taskId);
-                Task.set('completed', !task.completed);
-                Task.set('completedAt', !task.completed ? new Date() : null);
+                
+                const Task = AV.Object.createWithoutData(`Task`, taskId);
+                Task.set(`completed`, !task.completed);
+                Task.set(`completedAt`, !task.completed ? new Date() : null);
                 await Task.save();
+                
                 task.completed = !task.completed;
                 task.completedAt = task.completed ? new Date() : null;
+                
                 renderTasks();
                 updateStats();
-                showToast(task.completed ? '✓ 任务已完成' : '任务标记为未完成');
+                showToast(task.completed ? `✓ 任务已完成` : `任务标记为未完成`);
             } catch (error) {
-                console.error('更新任务失败:', error);
-                showToast('操作失败');
+                console.error(`更新任务失败:`, error);
+                showToast(`操作失败`);
             }
         }
 
+        /**
+         * 更新统计数据（仅家长模式）
+         */
         function updateStats() {
-            if (currentRole !== 'parent') return;
+            if (currentRole !== `parent`) return;
+            
             const total = tasks.length;
             const completed = tasks.filter(t => t.completed).length;
             const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
-            document.getElementById('totalTasks').textContent = total;
-            document.getElementById('completedTasks').textContent = completed;
-            document.getElementById('completionRate').textContent = rate + '%';
+            
+            document.getElementById(`totalTasks`).textContent = total;
+            document.getElementById(`completedTasks`).textContent = completed;
+            document.getElementById(`completionRate`).textContent = rate + `%`;
         }
 
+        // ========== 创建任务功能 ==========
+        
+        /**
+         * 打开创建任务模态框
+         */
         function openCreateTaskModal() {
-            document.getElementById('createTaskModal').classList.add('active');
+            document.getElementById(`createTaskModal`).classList.add(`active`);
+            
+            // 默认设置明天为截止日期
             const tomorrow = new Date();
             tomorrow.setDate(tomorrow.getDate() + 1);
-            document.getElementById('taskDueDate').value = tomorrow.toISOString().split('T')[0];
+            document.getElementById(`taskDueDate`).value = tomorrow.toISOString().split(`T`)[0];
         }
 
+        /**
+         * 关闭创建任务模态框
+         */
         function closeCreateTaskModal() {
-            document.getElementById('createTaskModal').classList.remove('active');
-            document.getElementById('taskForm').reset();
+            document.getElementById(`createTaskModal`).classList.remove(`active`);
+            document.getElementById(`taskForm`).reset();
             uploadedFiles = [];
-            document.getElementById('uploadedFilesList').innerHTML = '';
+            document.getElementById(`uploadedFilesList`).innerHTML = ``;
         }
 
+        /**
+         * 处理文件选择和上传
+         * @param {Event} event - 文件输入事件
+         */
         async function handleFileSelect(event) {
             const files = Array.from(event.target.files);
+            
             for (const file of files) {
+                // 限制单个文件大小为10MB
                 if (file.size > 10 * 1024 * 1024) {
                     showToast(`${file.name} 超过10MB限制`);
                     continue;
                 }
+                
                 try {
-                    showToast('正在上传...');
+                    showToast(`正在上传...`);
                     const avFile = new AV.File(file.name, file);
                     await avFile.save();
+                    
                     uploadedFiles.push({
                         name: file.name,
                         url: avFile.url(),
                         type: file.type
                     });
+                    
                     renderUploadedFiles();
                     showToast(`${file.name} 上传成功`);
                 } catch (error) {
-                    console.error('上传失败:', error);
+                    console.error(`上传失败:`, error);
                     showToast(`${file.name} 上传失败`);
                 }
             }
-            event.target.value = '';
+            
+            event.target.value = ``;
         }
 
+        /**
+         * 渲染已上传文件列表
+         */
         function renderUploadedFiles() {
-            const list = document.getElementById('uploadedFilesList');
+            const list = document.getElementById(`uploadedFilesList`);
             list.innerHTML = uploadedFiles.map((file, idx) => `
                 <div class="uploaded-file">
-                    <span>${getFileIcon(file.type)} ${escapeHtml(file.name)}</span>
+                    <span>${getFileIcon(file.type, file.name)} ${escapeHtml(file.name)}</span>
                     <button type="button" class="remove-file" onclick="removeFile(${idx})">&times;</button>
                 </div>
-            `).join('');
+            `).join(``);
         }
 
+        /**
+         * 移除已上传文件
+         * @param {number} index - 文件索引
+         */
         function removeFile(index) {
             uploadedFiles.splice(index, 1);
             renderUploadedFiles();
         }
 
+        /**
+         * 创建新任务
+         * @param {Event} event - 表单提交事件
+         */
         async function createTask(event) {
             event.preventDefault();
+            
             try {
-                showToast('正在创建任务...');
-                const title = document.getElementById('taskTitle').value.trim();
-                const description = document.getElementById('taskDescription').value.trim();
-                const dueDate = document.getElementById('taskDueDate').value;
-                const priority = document.getElementById('taskPriority').value;
-                const tagsInput = document.getElementById('taskTags').value.trim();
-                const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(t => t) : [];
+                showToast(`正在创建任务...`);
                 
-                const Task = AV.Object.extend('Task');
+                const title = document.getElementById(`taskTitle`).value.trim();
+                const description = document.getElementById(`taskDescription`).value.trim();
+                const dueDate = document.getElementById(`taskDueDate`).value;
+                const priority = document.getElementById(`taskPriority`).value;
+                const tagsInput = document.getElementById(`taskTags`).value.trim();
+                const tags = tagsInput ? tagsInput.split(`,`).map(t => t.trim()).filter(t => t) : [];
+                
+                const Task = AV.Object.extend(`Task`);
                 const task = new Task();
-                task.set('familyId', localStorage.getItem('familyId'));
-                task.set('title', title);
-                task.set('description', description);
-                task.set('dueDate', dueDate ? new Date(dueDate) : null);
-                task.set('priority', priority);
-                task.set('tags', tags);
-                task.set('attachments', uploadedFiles);
-                task.set('completed', false);
-                task.set('createdBy', 'parent');
+                task.set(`familyId`, localStorage.getItem(`familyId`));
+                task.set(`title`, title);
+                task.set(`description`, description);
+                task.set(`dueDate`, dueDate ? new Date(dueDate) : null);
+                task.set(`priority`, priority);
+                task.set(`tags`, tags);
+                task.set(`attachments`, uploadedFiles);
+                task.set(`completed`, false);
+                task.set(`createdBy`, `parent`);
+                
                 await task.save();
-                showToast('✓ 任务创建成功');
+                
+                showToast(`✓ 任务创建成功`);
                 closeCreateTaskModal();
                 await loadTasks();
             } catch (error) {
-                console.error('创建任务失败:', error);
-                showToast('创建失败,请重试');
+                console.error(`创建任务失败:`, error);
+                showToast(`创建失败,请重试`);
             }
         }
 
+        // ========== 附件预览功能（增强版） ==========
+        
+        /**
+         * 查看附件
+         * 支持图片、视频、音频、PDF和DOCX预览
+         * @param {string} taskId - 任务ID
+         * @param {number} attachmentIndex - 附件索引
+         */
         function viewAttachment(taskId, attachmentIndex) {
             const task = tasks.find(t => t.id === taskId);
             if (!task || !task.attachments || !task.attachments[attachmentIndex]) return;
+            
             const attachment = task.attachments[attachmentIndex];
-            const modal = document.getElementById('attachmentModal');
-            const title = document.getElementById('attachmentTitle');
-            const content = document.getElementById('attachmentContent');
+            const modal = document.getElementById(`attachmentModal`);
+            const title = document.getElementById(`attachmentTitle`);
+            const content = document.getElementById(`attachmentContent`);
+            
             title.textContent = attachment.name;
             
-            if (attachment.type.startsWith('image/')) {
-                content.innerHTML = `<img src="${attachment.url}" alt="${escapeHtml(attachment.name)}" style="max-width: 100%;">`;
-            } else if (attachment.type.startsWith('video/')) {
-                content.innerHTML = `<video controls src="${attachment.url}" style="width: 100%; border-radius: 8px;"></video>`;
-            } else if (attachment.type.startsWith('audio/')) {
+            // 图片预览
+            if (attachment.type.startsWith(`image/`)) {
+                content.innerHTML = `<img src="${attachment.url}" alt="${escapeHtml(attachment.name)}" style="max-width: 100%; border-radius: 8px;">`;
+            } 
+            // 视频预览
+            else if (attachment.type.startsWith(`video/`)) {
+                content.innerHTML = `<video controls src="${attachment.url}" class="preview-iframe"></video>`;
+            } 
+            // 音频预览
+            else if (attachment.type.startsWith(`audio/`)) {
                 content.innerHTML = `<audio controls src="${attachment.url}" style="width: 100%;"></audio>`;
-            } else if (attachment.type === 'application/pdf') {
-                content.innerHTML = `<iframe src="${attachment.url}" style="width: 100%; height: 70vh; border: none; border-radius: 8px;"></iframe>`;
-            } else {
+            } 
+            // PDF预览
+            else if (attachment.type === `application/pdf`) {
+                content.innerHTML = `<iframe src="${attachment.url}" class="preview-iframe"></iframe>`;
+            } 
+            // DOCX预览（新增）- 使用Office Web Viewer
+            else if (attachment.type === `application/vnd.openxmlformats-officedocument.wordprocessingml.document` || 
+                     attachment.name.toLowerCase().endsWith(`.docx`)) {
+                
+                const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=` + encodeURIComponent(attachment.url);
+                
                 content.innerHTML = `
-                    <div style="text-align: center; padding: 40px;">
-                        <div style="font-size: 48px; margin-bottom: 16px;">📄</div>
+                    <iframe id="docxPreviewFrame" src="${officeViewerUrl}" class="preview-iframe" 
+                            onload="clearDocxTimeout()" 
+                            onerror="showDocxFallback('${attachment.url}', '${escapeHtml(attachment.name)}')">
+                    </iframe>
+                    <div id="docxFallback" class="preview-fallback" style="display: none;">
+                        <div class="preview-fallback-icon">📄</div>
+                        <div>无法预览DOCX文件</div>
+                        <button class="download-btn" onclick="downloadFile('${attachment.url}', '${escapeHtml(attachment.name)}')">
+                            下载文件
+                        </button>
+                    </div>
+                `;
+                
+                // 设置5秒超时，如果iframe未加载成功则显示降级方案
+                window.docxPreviewTimeout = setTimeout(() => {
+                    showDocxFallback(attachment.url, attachment.name);
+                }, 5000);
+            } 
+            // 其他文件类型 - 提供下载
+            else {
+                content.innerHTML = `
+                    <div class="preview-fallback">
+                        <div class="preview-fallback-icon">📄</div>
                         <div>无法预览此文件类型</div>
-                        <a href="${attachment.url}" target="_blank" style="color: var(--primary-color); margin-top: 12px; display: inline-block;">下载文件</a>
+                        <button class="download-btn" onclick="downloadFile('${attachment.url}', '${escapeHtml(attachment.name)}')">
+                            下载文件
+                        </button>
                     </div>
                 `;
             }
-            modal.classList.add('active');
+            
+            modal.classList.add(`active`);
         }
 
+        /**
+         * 清除DOCX预览超时计时器
+         */
+        function clearDocxTimeout() {
+            if (window.docxPreviewTimeout) {
+                clearTimeout(window.docxPreviewTimeout);
+                window.docxPreviewTimeout = null;
+            }
+        }
+
+        /**
+         * 显示DOCX预览降级方案
+         * @param {string} url - 文件URL
+         * @param {string} name - 文件名
+         */
+        function showDocxFallback(url, name) {
+            const iframe = document.getElementById(`docxPreviewFrame`);
+            const fallback = document.getElementById(`docxFallback`);
+            
+            if (iframe && fallback) {
+                iframe.style.display = `none`;
+                fallback.style.display = `block`;
+            }
+            
+            clearDocxTimeout();
+        }
+
+        /**
+         * 下载文件
+         * @param {string} url - 文件URL
+         * @param {string} name - 文件名
+         */
+        function downloadFile(url, name) {
+            window.open(url, `_blank`);
+            showToast(`正在下载 ${name}`);
+        }
+
+        /**
+         * 关闭附件预览模态框
+         */
         function closeAttachmentModal() {
-            document.getElementById('attachmentModal').classList.remove('active');
+            document.getElementById(`attachmentModal`).classList.remove(`active`);
+            clearDocxTimeout();
         }
 
+        // ========== 系统架构功能（新增） ==========
+        
+        /**
+         * 打开系统架构模态框
+         */
+        function openArchitectureModal() {
+            document.getElementById(`architectureModal`).classList.add(`active`);
+        }
+
+        /**
+         * 关闭系统架构模态框
+         */
+        function closeArchitectureModal() {
+            document.getElementById(`architectureModal`).classList.remove(`active`);
+        }
+
+        // ========== 实时同步功能 ==========
+        
+        /**
+         * 设置定时同步任务
+         * 每30秒自动刷新任务列表
+         */
         function setupRealtimeSync() {
             setInterval(async () => {
                 await loadTasks();
             }, 30000);
         }
 
+        // ========== 工具函数 ==========
+        
+        /**
+         * 显示提示消息
+         * @param {string} message - 消息内容
+         */
         function showToast(message) {
-            const toast = document.getElementById('toast');
+            const toast = document.getElementById(`toast`);
             toast.textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => { toast.classList.remove('show'); }, 2000);
+            toast.classList.add(`show`);
+            setTimeout(() => { toast.classList.remove(`show`); }, 2000);
         }
 
+        /**
+         * HTML转义，防止XSS攻击
+         * @param {string} text - 需要转义的文本
+         * @returns {string} 转义后的HTML
+         */
         function escapeHtml(text) {
-            const div = document.createElement('div');
+            const div = document.createElement(`div`);
             div.textContent = text;
             return div.innerHTML;
         }
 
+        /**
+         * 格式化日期显示
+         * @param {Date} date - 日期对象
+         * @returns {string} 格式化后的日期字符串
+         */
         function formatDate(date) {
             const d = new Date(date);
             const today = new Date();
             const tomorrow = new Date(today);
             tomorrow.setDate(tomorrow.getDate() + 1);
-            if (d.toDateString() === today.toDateString()) return '今天';
-            if (d.toDateString() === tomorrow.toDateString()) return '明天';
+            
+            if (d.toDateString() === today.toDateString()) return `今天`;
+            if (d.toDateString() === tomorrow.toDateString()) return `明天`;
             return `${d.getMonth() + 1}月${d.getDate()}日`;
         }
 
-        function getFileIcon(type) {
-            if (type.startsWith('image/')) return '🖼️';
-            if (type.startsWith('video/')) return '🎬';
-            if (type.startsWith('audio/')) return '🎵';
-            if (type === 'application/pdf') return '📄';
-            return '📎';
+        /**
+         * 获取文件类型图标（增强版）
+         * @param {string} type - MIME类型
+         * @param {string} name - 文件名
+         * @returns {string} 图标emoji
+         */
+        function getFileIcon(type, name) {
+            // 检查DOCX文件
+            if (type === `application/vnd.openxmlformats-officedocument.wordprocessingml.document` || 
+                (name && name.toLowerCase().endsWith(`.docx`))) {
+                return `📄 DOCX`;
+            }
+            
+            // 检查其他文件类型
+            if (type.startsWith(`image/`)) return `🖼️`;
+            if (type.startsWith(`video/`)) return `🎬`;
+            if (type.startsWith(`audio/`)) return `🎵`;
+            if (type === `application/pdf`) return `📄 PDF`;
+            
+            return `📎`;
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            const familyId = localStorage.getItem('familyId');
-            const userRole = localStorage.getItem('userRole');
+        // ========== 页面加载初始化 ==========
+        
+        /**
+         * 页面加载完成后的初始化
+         * 检查本地存储，自动登录已有用户
+         */
+        window.addEventListener(`DOMContentLoaded`, () => {
+            const familyId = localStorage.getItem(`familyId`);
+            const userRole = localStorage.getItem(`userRole`);
+            
             if (familyId && userRole) {
                 currentRole = userRole;
                 currentFamily = { id: familyId };
-                document.getElementById('loginPage').classList.add('hidden');
-                document.getElementById('mainApp').classList.remove('hidden');
+                document.getElementById(`loginPage`).classList.add(`hidden`);
+                document.getElementById(`mainApp`).classList.remove(`hidden`);
                 initApp();
             }
         });
 
-        document.addEventListener('click', (e) => {
-            if (e.target.tagName === 'A' && e.target.href && !e.target.href.startsWith('data:')) {
+        // ========== 安全功能 ==========
+        
+        /**
+         * 拦截外部链接点击，防止恶意跳转
+         * 不影响iframe的正常使用
+         */
+        document.addEventListener(`click`, (e) => {
+            if (e.target.tagName === `A` && e.target.href && !e.target.href.startsWith(`data:`)) {
                 e.preventDefault();
-                showToast('为了安全,已禁用外部链接');
+                showToast(`为了安全,已禁用外部链接`);
             }
         });
     </script>
+    
+    <!-- 页面生成日期: 2025-12-11 -->
 </body>
 </html>
