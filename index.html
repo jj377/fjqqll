@@ -403,9 +403,9 @@
                             支持PDF、DOCX、图片、音频、视频
                         </div>
                         <!-- 更新文件类型接受列表，增加DOCX和PDF支持 -->
-                        <input type="file" id="fileInput" multiple 
-                               accept=".pdf,.docx,.doc,.jpg,.jpeg,.png,.gif,.mp3,.mp4,.wav,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
-                               onchange="handleFileSelect(event)">
+                        <input type="file" id="fileInput" multiple
+                          accept=".pdf,.docx,.doc,.jpg,.jpeg,.png,.gif,.mp3,.mp4,.wav,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                          onchange="handleFileSelect(event)">
                     </div>
                     <div id="uploadedFilesList" class="uploaded-files"></div>
                 </div>
@@ -869,73 +869,67 @@
          * @param {string} taskId - 任务ID
          * @param {number} attachmentIndex - 附件索引
          */
-        function viewAttachment(taskId, attachmentIndex) {
-            const task = tasks.find(t => t.id === taskId);
-            if (!task || !task.attachments || !task.attachments[attachmentIndex]) return;
-            
-            const attachment = task.attachments[attachmentIndex];
-            const modal = document.getElementById(`attachmentModal`);
-            const title = document.getElementById(`attachmentTitle`);
-            const content = document.getElementById(`attachmentContent`);
-            
-            title.textContent = attachment.name;
-            
-            // 图片预览
-            if (attachment.type.startsWith(`image/`)) {
-                content.innerHTML = `<img src="${attachment.url}" alt="${escapeHtml(attachment.name)}" style="max-width: 100%; border-radius: 8px;">`;
-            } 
-            // 视频预览
-            else if (attachment.type.startsWith(`video/`)) {
-                content.innerHTML = `<video controls src="${attachment.url}" class="preview-iframe"></video>`;
-            } 
-            // 音频预览
-            else if (attachment.type.startsWith(`audio/`)) {
-                content.innerHTML = `<audio controls src="${attachment.url}" style="width: 100%;"></audio>`;
-            } 
-            // PDF预览
-            else if (attachment.type === `application/pdf`) {
-                content.innerHTML = `<iframe src="${attachment.url}" class="preview-iframe"></iframe>`;
-            } 
-            // DOCX预览（新增）- 使用Office Web Viewer
-            else if (attachment.type === `application/vnd.openxmlformats-officedocument.wordprocessingml.document` || 
-                     attachment.name.toLowerCase().endsWith(`.docx`)) {
-                
-                const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=` + encodeURIComponent(attachment.url);
-                
-                content.innerHTML = `
-                    <iframe id="docxPreviewFrame" src="${officeViewerUrl}" class="preview-iframe" 
-                            onload="clearDocxTimeout()" 
-                            onerror="showDocxFallback('${attachment.url}', '${escapeHtml(attachment.name)}')">
-                    </iframe>
-                    <div id="docxFallback" class="preview-fallback" style="display: none;">
-                        <div class="preview-fallback-icon">📄</div>
-                        <div>无法预览DOCX文件</div>
-                        <button class="download-btn" onclick="downloadFile('${attachment.url}', '${escapeHtml(attachment.name)}')">
-                            下载文件
-                        </button>
-                    </div>
-                `;
-                
-                // 设置5秒超时，如果iframe未加载成功则显示降级方案
-                window.docxPreviewTimeout = setTimeout(() => {
-                    showDocxFallback(attachment.url, attachment.name);
-                }, 5000);
-            } 
-            // 其他文件类型 - 提供下载
-            else {
-                content.innerHTML = `
-                    <div class="preview-fallback">
-                        <div class="preview-fallback-icon">📄</div>
-                        <div>无法预览此文件类型</div>
-                        <button class="download-btn" onclick="downloadFile('${attachment.url}', '${escapeHtml(attachment.name)}')">
-                            下载文件
-                        </button>
-                    </div>
-                `;
-            }
-            
-            modal.classList.add(`active`);
-        }
+    function viewAttachment(taskId, attachmentIndex) {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task || !task.attachments || !task.attachments[attachmentIndex]) return;
+    const attachment = task.attachments[attachmentIndex];
+    const modal = document.getElementById(`attachmentModal`);
+    const title = document.getElementById(`attachmentTitle`);
+    const content = document.getElementById(`attachmentContent`);
+    title.textContent = attachment.name;
+    if (attachment.type.startsWith(`image/`)) {
+      content.innerHTML = `<img src="${attachment.url}" alt="${escapeHtml(attachment.name)}" style="max-width: 100%; border-radius: 8px;">`;
+    } else if (attachment.type.startsWith(`video/`)) {
+      content.innerHTML = `<video controls src="${attachment.url}" class="preview-iframe"></video>`;
+    } else if (attachment.type.startsWith(`audio/`)) {
+      content.innerHTML = `<audio controls src="${attachment.url}" style="width: 100%;"></audio>`;
+    }
+    // PDF 预览：使用 PDF.js Viewer
+    else if (isPDF(attachment)) {
+      const viewerUrl = `https://mozilla.github.io/pdf.js/web/viewer.html?file=` + encodeURIComponent(attachment.url);
+      content.innerHTML = `
+        <iframe src="${viewerUrl}" class="preview-iframe"></iframe>
+        <div class="preview-fallback" style="margin-top: 12px;">
+          <button class="download-btn" onclick="downloadFile('${attachment.url}', '${escapeHtml(attachment.name)}')">
+            下载PDF
+          </button>
+        </div>
+      `;
+    }
+    // DOCX/DOC 预览：Office Web Viewer，含超时与降级
+    else if (isDOCX(attachment) || isDOC(attachment) || attachment.name.toLowerCase().endsWith('.docx') || attachment.name.toLowerCase().endsWith('.doc')) {
+      const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=` + encodeURIComponent(attachment.url);
+      content.innerHTML = `
+        <iframe id="docxPreviewFrame" src="${officeViewerUrl}" class="preview-iframe"
+                onload="clearDocxTimeout()"
+                onerror="showDocxFallback('${attachment.url}', '${escapeHtml(attachment.name)}')">
+        </iframe>
+        <div id="docxFallback" class="preview-fallback" style="display: none;">
+          <div class="preview-fallback-icon">📄</div>
+          <div>无法预览该Word文件</div>
+          <button class="download-btn" onclick="downloadFile('${attachment.url}', '${escapeHtml(attachment.name)}')">
+            下载文件
+          </button>
+        </div>
+      `;
+      window.docxPreviewTimeout = setTimeout(() => {
+        showDocxFallback(attachment.url, attachment.name);
+      }, 5000);
+    }
+    // 其他类型：统一提供下载
+    else {
+      content.innerHTML = `
+        <div class="preview-fallback">
+          <div class="preview-fallback-icon">📄</div>
+          <div>无法预览此文件类型</div>
+          <button class="download-btn" onclick="downloadFile('${attachment.url}', '${escapeHtml(attachment.name)}')">
+            下载文件
+          </button>
+        </div>
+      `;
+    }
+    modal.classList.add(`active`);
+  }
 
         /**
          * 清除DOCX预览超时计时器
@@ -969,10 +963,26 @@
          * @param {string} url - 文件URL
          * @param {string} name - 文件名
          */
-        function downloadFile(url, name) {
-            window.open(url, `_blank`);
-            showToast(`正在下载 ${name}`);
-        }
+  async function downloadFile(url, name) {
+    try {
+      const res = await fetch(url, { mode: 'cors' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = name || 'download';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(objectUrl);
+      showToast(`正在下载 ${name}`);
+    } catch (e) {
+      // CORS 或 fetch 失败时降级为在新标签页打开
+      window.open(url, '_blank', 'noopener');
+      showToast(`已在新窗口打开 ${name}`);
+    }
+  }
 
         /**
          * 关闭附件预览模态框
@@ -1023,6 +1033,22 @@
             setTimeout(() => { toast.classList.remove(`show`); }, 2000);
         }
 
+
+  function fileExt(name) {
+    if (!name) return '';
+    const idx = name.lastIndexOf('.');
+    return idx >= 0 ? name.substring(idx + 1).toLowerCase() : '';
+  }
+  function isPDF(att) {
+    return att.type === 'application/pdf' || /\.pdf$/i.test(att.name || '');
+  }
+  function isDOCX(att) {
+    return att.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+           || /\.docx$/i.test(att.name || '');
+  }
+  function isDOC(att) {
+    return att.type === 'application/msword' || /\.doc$/i.test(att.name || '');
+  }        
         /**
          * HTML转义，防止XSS攻击
          * @param {string} text - 需要转义的文本
@@ -1056,21 +1082,16 @@
          * @param {string} name - 文件名
          * @returns {string} 图标emoji
          */
-        function getFileIcon(type, name) {
-            // 检查DOCX文件
-            if (type === `application/vnd.openxmlformats-officedocument.wordprocessingml.document` || 
-                (name && name.toLowerCase().endsWith(`.docx`))) {
-                return `📄 DOCX`;
-            }
-            
-            // 检查其他文件类型
-            if (type.startsWith(`image/`)) return `🖼️`;
-            if (type.startsWith(`video/`)) return `🎬`;
-            if (type.startsWith(`audio/`)) return `🎵`;
-            if (type === `application/pdf`) return `📄 PDF`;
-            
-            return `📎`;
-        }
+  function getFileIcon(type, name) {
+    const ext = fileExt(name || '');
+    if (type.startsWith('image/')) return '🖼️';
+    if (type.startsWith('video/')) return '🎬';
+    if (type.startsWith('audio/')) return '🎵';
+    if (type === 'application/pdf' || ext === 'pdf') return '📄 PDF';
+    if (type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || ext === 'docx') return '📄 DOCX';
+    if (type === 'application/msword' || ext === 'doc') return '📄 DOC';
+    return '📎';
+  }
 
         // ========== 页面加载初始化 ==========
         
@@ -1097,8 +1118,14 @@
          * 拦截外部链接点击，防止恶意跳转
          * 不影响iframe的正常使用
          */
-        document.addEventListener(`click`, (e) => {
-            if (e.target.tagName === `A` && e.target.href && !e.target.href.startsWith(`data:`)) {
+        document.addEventListener('click', (e) => {
+        const a = e.target.closest('a');
+        if (!a) return;
+            const href = a.getAttribute('href') || '';
+            const isData = href.startsWith('data:');
+            const isSameOrigin = href.startsWith(location.origin);
+            const isDownload = a.classList.contains('download-btn') || a.getAttribute('download') !== null || a.dataset.allowExternal === 'true';
+            if (!isData && !isSameOrigin && !isDownload) {
                 e.preventDefault();
                 showToast(`为了安全,已禁用外部链接`);
             }
