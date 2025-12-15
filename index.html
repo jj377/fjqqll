@@ -277,7 +277,7 @@
         /* 预览工具栏与全屏（保留并调整） */
         .preview-toolbar{
             display:flex; gap:8px; justify-content:flex-end; align-items:center;
-            margin:8px 0; position: sticky; top:0; background:#fff; z-index:5;
+            margin:8px 0; position: sticky; top:0; background:#fff; z-index:50; 
             padding:8px 0; border-bottom:1px solid var(--border-color);
             flex: 0 0 auto; /* 工具栏不挤压内容区 */
         }
@@ -793,37 +793,43 @@
             content.innerHTML = ``;
 
             // 图片预览：新增放大/缩小/复位与下载按钮（容器已改为flex自适应）
-            if (attachment.type.startsWith(`image/`)) {
-                content.innerHTML = `
-                  <div class="preview-toolbar">
-                    <button class="tool-btn" onclick="zoomImage(0.2)">放大+</button>
-                    <button class="tool-btn" onclick="zoomImage(-0.2)">缩小-</button>
-                    <button class="tool-btn" onclick="resetImageZoom()">复位</button>
-                    <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载</button>
-                  </div>
-                  <div class="image-wrap">
-                    <img id="previewImg" src="${safeUrl}" alt="${escapeHtml(attachment.name)}">
-                  </div>
-                `;
-                const imgEl = document.getElementById('previewImg');
-                setupImageZoom(imgEl);
-            }
-            else if (attachment.type.startsWith(`video/`)) {
-                content.innerHTML = `
-                  <div class="preview-toolbar">
-                    <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载视频</button>
-                  </div>
-                  <video controls src="${safeUrl}" class="preview-iframe"></video>
-                `;
-            }
-            else if (attachment.type.startsWith(`audio/`)) {
-                content.innerHTML = `
-                  <div class="preview-toolbar">
-                    <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载音频</button>
-                  </div>
-                  <audio controls src="${safeUrl}" style="width: 100%;"></audio>
-                `;
-            }
+           if (attachment.type.startsWith(`image/`)) {
+  content.innerHTML = `
+    <div class="preview-toolbar">
+      <button class="tool-btn" onclick="toggleAttachmentFullscreen()" title="全屏/退出全屏">⛶ 全屏</button>
+      <button class="tool-btn" onclick="closeAttachmentModal()" title="关闭">✖ 关闭</button>
+      <button class="tool-btn" onclick="zoomImage(0.2)">放大+</button>
+      <button class="tool-btn" onclick="zoomImage(-0.2)">缩小-</button>
+      <button class="tool-btn" onclick="resetImageZoom()">复位</button>
+      <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载</button>
+    </div>
+    <div class="image-wrap">
+      <img id="previewImg" src="${safeUrl}" alt="${escapeHtml(attachment.name)}">
+    </div>
+  `;
+  const imgEl = document.getElementById('previewImg');
+  setupImageZoom(imgEl);
+}
+else if (attachment.type.startsWith(`video/`)) {
+  content.innerHTML = `
+    <div class="preview-toolbar">
+      <button class="tool-btn" onclick="toggleAttachmentFullscreen()" title="全屏/退出全屏">⛶ 全屏</button>
+      <button class="tool-btn" onclick="closeAttachmentModal()" title="关闭">✖ 关闭</button>
+      <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载视频</button>
+    </div>
+    <video controls src="${safeUrl}" class="preview-iframe"></video>
+  `;
+}
+else if (attachment.type.startsWith(`audio/`)) {
+  content.innerHTML = `
+    <div class="preview-toolbar">
+      <button class="tool-btn" onclick="toggleAttachmentFullscreen()" title="全屏/退出全屏">⛶ 全屏</button>
+      <button class="tool-btn" onclick="closeAttachmentModal()" title="关闭">✖ 关闭</button>
+      <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载音频</button>
+    </div>
+    <audio controls src="${safeUrl}" style="width: 100%;"></audio>
+  `;
+}
             // PDF：iOS 优先用 pdf.js 渲染，其他平台保留原 viewer，并都提供下载/外部打开
             else if (isPDF(attachment)) {
                 if (isIOS()) {
