@@ -8,321 +8,321 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
 
-    <title>家庭任务助手</title>
+<title>家庭任务助手</title>
+
+<!-- PWA Manifest Link -->
+<link rel="manifest" href="manifest.json" type="application/manifest+json">
+
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     
-    <!-- PWA Manifest Link -->
-    <link rel="manifest" href="manifest.json" type="application/manifest+json">
+    :root {
+        --primary-color: #4A90E2;
+        --success-color: #5CB85C;
+        --warning-color: #F0AD4E;
+        --danger-color: #D9534F;
+        --bg-color: #F5F7FA;
+        --card-bg: #FFFFFF;
+        --text-primary: #333333;
+        --text-secondary: #666666;
+        --border-color: #E1E8ED;
+        --shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg-color);
+        color: var(--text-primary);
+        line-height: 1.6;
+    }
+    
+    .container { max-width: 600px; margin: 0 auto; min-height: 100vh; background: var(--card-bg); }
+    .hidden { display: none !important; }
+    
+    /* 登录页面 */
+    #loginPage {
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+        min-height: 100vh; padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .login-card {
+        background: white; border-radius: 16px; padding: 40px 30px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2); width: 100%; max-width: 400px;
+    }
+    
+    .login-title { font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 10px; color: var(--primary-color); }
+    .login-subtitle { text-align: center; color: var(--text-secondary); margin-bottom: 30px; font-size: 14px; }
+    
+    .input-group { margin-bottom: 20px; }
+    .input-group label { display: block; margin-bottom: 8px; font-weight: 500; }
+    .input-group input {
+        width: 100%; padding: 12px 16px; border: 2px solid var(--border-color);
+        border-radius: 8px; font-size: 16px;
+    }
+    .input-group input:focus { outline: none; border-color: var(--primary-color); }
+    
+    .btn {
+        width: 100%; padding: 14px; border: none; border-radius: 8px;
+        font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+    }
+    .btn-primary { background: var(--primary-color); color: white; }
+    .btn-primary:hover { background: #357ABD; transform: translateY(-2px); }
+    .btn-secondary { background: var(--text-secondary); color: white; margin-top: 10px; }
+    
+    .divider {
+        text-align: center; margin: 20px 0; color: var(--text-secondary); position: relative;
+    }
+    .divider::before, .divider::after {
+        content: ''; position: absolute; top: 50%; width: 40%; height: 1px;
+        background: var(--border-color);
+    }
+    .divider::before { left: 0; }
+    .divider::after { right: 0; }
+    
+    /* 头部 */
+    .header {
+        background: var(--primary-color); color: white; padding: 16px 20px;
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .header-title { font-size: 20px; font-weight: 600; }
+    .role-badge {
+        background: rgba(255,255,255,0.2); padding: 4px 12px;
+        border-radius: 12px; font-size: 14px;
+    }
+    .header-actions { display: flex; gap: 10px; }
+    .icon-btn {
+        background: rgba(255,255,255,0.2); border: none; color: white;
+        width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+    }
+    
+    /* 浮动按钮 */
+    .fab {
+        position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px;
+        background: var(--primary-color); border-radius: 50%; border: none;
+        color: white; font-size: 28px; cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000;
+    }
+    .fab:hover { transform: scale(1.1); }
+    
+    /* 统计面板 */
+    .stats-panel {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+        padding: 20px; background: var(--bg-color);
+    }
+    .stat-card {
+        background: white; padding: 16px; border-radius: 12px;
+        text-align: center; box-shadow: var(--shadow);
+    }
+    .stat-value { font-size: 28px; font-weight: 700; color: var(--primary-color); }
+    .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+    
+    /* 任务列表 */
+    .task-list { padding: 0 20px 80px 20px; }
+    .task-section-title {
+        font-size: 14px; font-weight: 600; color: var(--text-secondary);
+        margin: 20px 0 10px 0; text-transform: uppercase;
+    }
+    
+    .task-card {
+        background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px;
+        box-shadow: var(--shadow); border-left: 4px solid transparent;
+    }
+    .task-card.priority-high { border-left-color: var(--danger-color); }
+    .task-card.priority-medium { border-left-color: var(--warning-color); }
+    .task-card.priority-low { border-left-color: var(--success-color); }
+    .task-card.completed { opacity: 0.6; background: #f9f9f9; }
+    
+    .task-header { display: flex; align-items: flex-start; gap: 12px; }
+    .task-checkbox {
+        width: 24px; height: 24px; min-width: 24px; border: 2px solid var(--border-color);
+        border-radius: 6px; cursor: pointer; display: flex; align-items: center;
+        justify-content: center;
+    }
+    .task-checkbox:hover { border-color: var(--primary-color); }
+    .task-checkbox.checked {
+        background: var(--success-color); border-color: var(--success-color);
+    }
+    .task-checkbox.checked::after {
+        content: '✓'; color: white; font-size: 16px; font-weight: bold;
+    }
+    
+    .task-content { flex: 1; }
+    .task-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+    .task-title.completed { text-decoration: line-through; color: var(--text-secondary); }
+    .task-description { font-size: 14px; color: var(--text-secondary); margin-bottom: 8px; }
+    
+    .task-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .task-tag {
+        display: inline-block; padding: 4px 10px; background: var(--bg-color);
+        border-radius: 12px; font-size: 12px; color: var(--text-secondary);
+    }
+    .task-due-date { font-size: 12px; color: var(--text-secondary); }
+    .task-due-date.overdue { color: var(--danger-color); font-weight: 600; }
+    
+    .task-attachments { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .attachment-item {
+        padding: 6px 12px; background: var(--bg-color); border-radius: 8px;
+        font-size: 13px; color: var(--primary-color); cursor: pointer;
+    }
+    .attachment-item:hover { background: #e3f2fd; }
+    
+    /* 模态框 */
+    .modal {
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;
+    }
+    .modal.active { display: flex; }
 
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        :root {
-            --primary-color: #4A90E2;
-            --success-color: #5CB85C;
-            --warning-color: #F0AD4E;
-            --danger-color: #D9534F;
-            --bg-color: #F5F7FA;
-            --card-bg: #FFFFFF;
-            --text-primary: #333333;
-            --text-secondary: #666666;
-            --border-color: #E1E8ED;
-            --shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: var(--bg-color);
-            color: var(--text-primary);
-            line-height: 1.6;
-        }
-        
-        .container { max-width: 600px; margin: 0 auto; min-height: 100vh; background: var(--card-bg); }
-        .hidden { display: none !important; }
-        
-        /* 登录页面 */
-        #loginPage {
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            min-height: 100vh; padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .login-card {
-            background: white; border-radius: 16px; padding: 40px 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2); width: 100%; max-width: 400px;
-        }
-        
-        .login-title { font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 10px; color: var(--primary-color); }
-        .login-subtitle { text-align: center; color: var(--text-secondary); margin-bottom: 30px; font-size: 14px; }
-        
-        .input-group { margin-bottom: 20px; }
-        .input-group label { display: block; margin-bottom: 8px; font-weight: 500; }
-        .input-group input {
-            width: 100%; padding: 12px 16px; border: 2px solid var(--border-color);
-            border-radius: 8px; font-size: 16px;
-        }
-        .input-group input:focus { outline: none; border-color: var(--primary-color); }
-        
-        .btn {
-            width: 100%; padding: 14px; border: none; border-radius: 8px;
-            font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s;
-        }
-        .btn-primary { background: var(--primary-color); color: white; }
-        .btn-primary:hover { background: #357ABD; transform: translateY(-2px); }
-        .btn-secondary { background: var(--text-secondary); color: white; margin-top: 10px; }
-        
-        .divider {
-            text-align: center; margin: 20px 0; color: var(--text-secondary); position: relative;
-        }
-        .divider::before, .divider::after {
-            content: ''; position: absolute; top: 50%; width: 40%; height: 1px;
-            background: var(--border-color);
-        }
-        .divider::before { left: 0; }
-        .divider::after { right: 0; }
-        
-        /* 头部 */
-        .header {
-            background: var(--primary-color); color: white; padding: 16px 20px;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .header-title { font-size: 20px; font-weight: 600; }
-        .role-badge {
-            background: rgba(255,255,255,0.2); padding: 4px 12px;
-            border-radius: 12px; font-size: 14px;
-        }
-        .header-actions { display: flex; gap: 10px; }
-        .icon-btn {
-            background: rgba(255,255,255,0.2); border: none; color: white;
-            width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-        }
-        
-        /* 浮动按钮 */
-        .fab {
-            position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px;
-            background: var(--primary-color); border-radius: 50%; border: none;
-            color: white; font-size: 28px; cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000;
-        }
-        .fab:hover { transform: scale(1.1); }
-        
-        /* 统计面板 */
-        .stats-panel {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
-            padding: 20px; background: var(--bg-color);
-        }
-        .stat-card {
-            background: white; padding: 16px; border-radius: 12px;
-            text-align: center; box-shadow: var(--shadow);
-        }
-        .stat-value { font-size: 28px; font-weight: 700; color: var(--primary-color); }
-        .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
-        
-        /* 任务列表 */
-        .task-list { padding: 0 20px 80px 20px; }
-        .task-section-title {
-            font-size: 14px; font-weight: 600; color: var(--text-secondary);
-            margin: 20px 0 10px 0; text-transform: uppercase;
-        }
-        
-        .task-card {
-            background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px;
-            box-shadow: var(--shadow); border-left: 4px solid transparent;
-        }
-        .task-card.priority-high { border-left-color: var(--danger-color); }
-        .task-card.priority-medium { border-left-color: var(--warning-color); }
-        .task-card.priority-low { border-left-color: var(--success-color); }
-        .task-card.completed { opacity: 0.6; background: #f9f9f9; }
-        
-        .task-header { display: flex; align-items: flex-start; gap: 12px; }
-        .task-checkbox {
-            width: 24px; height: 24px; min-width: 24px; border: 2px solid var(--border-color);
-            border-radius: 6px; cursor: pointer; display: flex; align-items: center;
-            justify-content: center;
-        }
-        .task-checkbox:hover { border-color: var(--primary-color); }
-        .task-checkbox.checked {
-            background: var(--success-color); border-color: var(--success-color);
-        }
-        .task-checkbox.checked::after {
-            content: '✓'; color: white; font-size: 16px; font-weight: bold;
-        }
-        
-        .task-content { flex: 1; }
-        .task-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
-        .task-title.completed { text-decoration: line-through; color: var(--text-secondary); }
-        .task-description { font-size: 14px; color: var(--text-secondary); margin-bottom: 8px; }
-        
-        .task-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-        .task-tag {
-            display: inline-block; padding: 4px 10px; background: var(--bg-color);
-            border-radius: 12px; font-size: 12px; color: var(--text-secondary);
-        }
-        .task-due-date { font-size: 12px; color: var(--text-secondary); }
-        .task-due-date.overdue { color: var(--danger-color); font-weight: 600; }
-        
-        .task-attachments { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
-        .attachment-item {
-            padding: 6px 12px; background: var(--bg-color); border-radius: 8px;
-            font-size: 13px; color: var(--primary-color); cursor: pointer;
-        }
-        .attachment-item:hover { background: #e3f2fd; }
-        
-        /* 模态框 */
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;
-        }
-        .modal.active { display: flex; }
+    /* 模态内容滚动与头部sticky：允许内容滚动，头部始终可见 */
+    .modal-content {
+        background: white; border-radius: 16px; padding: 24px;
+        width: 90%; max-width: 500px; max-height: 90vh;
+        display: flex; flex-direction: column;
+        overflow: auto; /* 允许模态内容自身滚动 */
+    }
+    .modal-header {
+        display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+        flex: 0 0 auto;
+        position: sticky; top: 0; z-index: 10; background: #fff;
+    }
+    #attachmentContent{
+        flex: 1 1 auto;
+        overflow: auto;
+        display: flex; flex-direction: column;
+        min-height: 0;
+    }
 
-        /* 关键改动：modal-content采用flex纵向布局，限制总高；附件内容区滚动 */
-        .modal-content {
-            background: white; border-radius: 16px; padding: 24px;
-            width: 90%; max-width: 500px; max-height: 90vh;
-            display: flex; flex-direction: column;
-            overflow: hidden; /* 让滚动发生在内容区 */
-        }
-        .modal-header {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
-            flex: 0 0 auto; /* 头部固定高度 */
-            position: sticky; top: 0; z-index: 10; background: #fff; /* 始终可见 */
-        }
-        #attachmentContent{
-            flex: 1 1 auto; /* 填充剩余空间 */
-            overflow: auto; /* 只滚动内容区，不影响头部 */
-            display: flex; flex-direction: column;
-            min-height: 0; /* 允许flex子项在容器内正确收缩 */
-        }
+    .modal-title { font-size: 20px; font-weight: 600; }
+    .close-btn {
+        background: none; border: none; font-size: 28px;
+        cursor: pointer; color: var(--text-secondary);
+    }
+    
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
+    .form-group input[type="text"],
+    .form-group input[type="date"],
+    .form-group textarea,
+    .form-group select {
+        width: 100%; padding: 10px 12px; border: 2px solid var(--border-color);
+        border-radius: 8px; font-size: 14px;
+    }
+    .form-group textarea { min-height: 80px; resize: vertical; }
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus { outline: none; border-color: var(--primary-color); }
+    
+    .file-upload {
+        border: 2px dashed var(--border-color); border-radius: 8px; padding: 20px;
+        text-align: center; cursor: pointer;
+    }
+    .file-upload:hover { border-color: var(--primary-color); background: var(--bg-color); }
+    .file-upload input { display: none; }
+    
+    .uploaded-files { margin-top: 12px; }
+    .uploaded-file {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 8px 12px; background: var(--bg-color); border-radius: 8px; margin-bottom: 8px;
+    }
+    .remove-file {
+        background: var(--danger-color); color: white; border: none;
+        width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
+    }
+    
+    .empty-state {
+        text-align: center; padding: 60px 20px; color: var(--text-secondary);
+    }
+    .empty-state-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.3; }
+    
+    /* Toast 不拦截点击，避免遮挡按钮 */
+    .toast {
+        position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+        background: rgba(0,0,0,0.8); color: white; padding: 12px 24px;
+        border-radius: 24px; font-size: 14px; z-index: 3000; opacity: 0;
+        pointer-events: none; /* 始终不拦截点击 */
+    }
+    .toast.show { opacity: 1; } /* 移除 pointer-events: auto */
 
-        .modal-title { font-size: 20px; font-weight: 600; }
-        .close-btn {
-            background: none; border: none; font-size: 28px;
-            cursor: pointer; color: var(--text-secondary);
-        }
-        
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
-        .form-group input[type="text"],
-        .form-group input[type="date"],
-        .form-group textarea,
-        .form-group select {
-            width: 100%; padding: 10px 12px; border: 2px solid var(--border-color);
-            border-radius: 8px; font-size: 14px;
-        }
-        .form-group textarea { min-height: 80px; resize: vertical; }
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus { outline: none; border-color: var(--primary-color); }
-        
-        .file-upload {
-            border: 2px dashed var(--border-color); border-radius: 8px; padding: 20px;
-            text-align: center; cursor: pointer;
-        }
-        .file-upload:hover { border-color: var(--primary-color); background: var(--bg-color); }
-        .file-upload input { display: none; }
-        
-        .uploaded-files { margin-top: 12px; }
-        .uploaded-file {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 8px 12px; background: var(--bg-color); border-radius: 8px; margin-bottom: 8px;
-        }
-        .remove-file {
-            background: var(--danger-color); color: white; border: none;
-            width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
-        }
-        
-        .empty-state {
-            text-align: center; padding: 60px 20px; color: var(--text-secondary);
-        }
-        .empty-state-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.3; }
-        
-        /* 修复按钮点击不灵敏：toast 默认不拦截点击，显示时才允许点击 */
-        .toast {
-            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.8); color: white; padding: 12px 24px;
-            border-radius: 24px; font-size: 14px; z-index: 3000; opacity: 0;
-            pointer-events: none; /* 关键：默认不拦截点击 */
-        }
-        .toast.show { opacity: 1; pointer-events: auto; } /* 仅显示时可点击/可关闭 */
-        
-        /* 预览基础样式 */
-        .preview-iframe {
-            width: 100%;
-            height: 70vh;
-            border: none;
-            border-radius: 8px;
-        }
-        .preview-fallback {
-            text-align: center;
-            padding: 40px;
-        }
-        .preview-fallback-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-        }
-        .download-btn {
-            display: inline-block;
-            margin-top: 12px;
-            padding: 10px 20px;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            text-decoration: none;
-        }
-        .download-btn:hover { background: #357ABD; }
+    /* 预览基础样式 */
+    .preview-iframe {
+        width: 100%;
+        height: 70vh;
+        border: none;
+        border-radius: 8px;
+    }
+    .preview-fallback {
+        text-align: center;
+        padding: 40px;
+    }
+    .preview-fallback-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+    }
+    .download-btn {
+        display: inline-block;
+        margin-top: 12px;
+        padding: 10px 20px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        text-decoration: none;
+    }
+    .download-btn:hover { background: #357ABD; }
 
-        /* 预览工具栏与全屏（保留并调整） */
-        .preview-toolbar{
-            display:flex; gap:8px; justify-content:flex-end; align-items:center;
-            margin:8px 0; position: sticky; top:0; background:#fff; z-index:50; 
-            padding:8px 0; border-bottom:1px solid var(--border-color);
-            flex: 0 0 auto; /* 工具栏不挤压内容区 */
-        }
-        .tool-btn{
-            padding:6px 10px; border:1px solid var(--border-color); background:#fff;
-            border-radius:6px; cursor:pointer; font-size:13px; color:var(--text-primary);
-        }
-        .tool-btn.primary{ background:var(--primary-color); color:#fff; border-color:var(--primary-color); }
+    /* 预览工具栏与全屏 */
+    .preview-toolbar{
+        display:flex; gap:8px; justify-content:flex-end; align-items:center;
+        margin:8px 0; position: sticky; top:0; background:#fff; z-index:50; 
+        padding:8px 0; border-bottom:1px solid var(--border-color);
+        flex: 0 0 auto;
+    }
+    .tool-btn{
+        padding:6px 10px; border:1px solid var(--border-color); background:#fff;
+        border-radius:6px; cursor:pointer; font-size:13px; color:var(--text-primary);
+    }
+    .tool-btn.primary{ background:var(--primary-color); color:#fff; border-color:var(--primary-color); }
 
-        /* 关键改动：image-wrap采用flex填充，普通/全屏自适应，图片居中contain */
-        .image-wrap{
-            width:100%;
-            flex: 1 1 auto;
-            min-height: 0;
-            overflow: auto;
-            position: relative;
-            background:#00000008; border-radius:8px;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .image-wrap img{
-            max-width:100%; max-height:100%;
-            width: auto; height: auto;
-            transform-origin:center center;
-            user-select:none; -webkit-user-drag:none; touch-action:none;
-            display:block; margin:0 auto;
-            object-fit: contain; /* 保持完整可见 */
-        }
+    /* 图片预览容器 */
+    .image-wrap{
+        width:100%;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+        position: relative;
+        background:#00000008; border-radius:8px;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .image-wrap img{
+        max-width:100%; max-height:100%;
+        width: auto; height: auto;
+        transform-origin:center center;
+        user-select:none; -webkit-user-drag:none; touch-action:none;
+        display:block; margin:0 auto;
+        object-fit: contain;
+    }
 
-        .modal.fullscreen .modal-content{
-            width:100vw; height:100vh; max-width:none; max-height:none;
-            border-radius:0; padding:12px;
-        }
-        .modal.fullscreen #attachmentContent{
-            flex: 1 1 auto; /* 全屏模式下仍填充剩余空间 */
-        }
-        .modal.fullscreen .preview-iframe{ height:calc(100vh - 100px); }
-        body.no-scroll{ overflow:hidden; }
-        
-        @media (max-width: 480px) {
-            .stats-panel { grid-template-columns: repeat(2, 1fr); }
-            .stat-card:last-child { grid-column: 1 / -1; }
-            .preview-iframe { height: 50vh; }
-            /* 移动端下，内容区仍采用flex填充，image-wrap不使用固定高度 */
-        }
-    </style>
+    .modal.fullscreen .modal-content{
+        width:100vw; height:100vh; max-width:none; max-height:none;
+        border-radius:0; padding:12px;
+    }
+    .modal.fullscreen #attachmentContent{
+        flex: 1 1 auto;
+    }
+    .modal.fullscreen .preview-iframe{ height:calc(100vh - 100px); }
+    body.no-scroll{ overflow:hidden; }
+    
+    @media (max-width: 480px) {
+        .stats-panel { grid-template-columns: repeat(2, 1fr); }
+        .stat-card:last-child { grid-column: 1 / -1; }
+        .preview-iframe { height: 50vh; }
+    }
+</style>
+
 </head>
 <body>
     <!-- 登录页面 -->
@@ -331,836 +331,843 @@
             <h1 class="login-title">👨‍👧 家庭任务助手</h1>
             <p class="login-subtitle">让任务管理更简单</p>
             
-            <div id="loginForm">
-                <div class="input-group">
-                    <label>家庭邀请码</label>
-                    <input type="text" id="inviteCodeInput" placeholder="输入6位邀请码" maxlength="6">
-                </div>
-                <button class="btn btn-primary" onclick="loginWithCode()">登录</button>
-                <div class="divider">或</div>
-                <button class="btn btn-secondary" onclick="createFamily()">创建新家庭</button>
+        <div id="loginForm">
+            <div class="input-group">
+                <label>家庭邀请码</label>
+                <input type="text" id="inviteCodeInput" placeholder="输入6位邀请码" maxlength="6">
             </div>
+            <button class="btn btn-primary" onclick="loginWithCode()">登录</button>
+            <div class="divider">或</div>
+            <button class="btn btn-secondary" onclick="createFamily()">创建新家庭</button>
+        </div>
 
-            <div id="roleSelection" class="hidden">
-                <p style="text-align: center; margin-bottom: 20px; color: var(--text-secondary);">请选择你的角色</p>
-                <button class="btn btn-primary" onclick="selectRole('parent')">👨‍💼 家长模式</button>
-                <button class="btn btn-secondary" onclick="selectRole('child')">👧 孩子模式</button>
-            </div>
+        <div id="roleSelection" class="hidden">
+            <p style="text-align: center; margin-bottom: 20px; color: var(--text-secondary);">请选择你的角色</p>
+            <button class="btn btn-primary" onclick="selectRole('parent')">👨‍💼 家长模式</button>
+            <button class="btn btn-secondary" onclick="selectRole('child')">👧 孩子模式</button>
         </div>
     </div>
+</div>
 
-    <!-- 主应用界面 -->
-    <div id="mainApp" class="hidden">
-        <div class="container">
-            <!-- 头部导航 -->
-            <div class="header">
-                <div>
-                    <div class="header-title">家庭任务</div>
-                    <div class="role-badge" id="roleBadge"></div>
-                </div>
-                <div class="header-actions">
-                    <button class="icon-btn" onclick="switchRole()" title="切换角色">🔄</button>
-                    <button class="icon-btn" onclick="logout()" title="退出">🚪</button>
-                </div>
+<!-- 主应用界面 -->
+<div id="mainApp" class="hidden">
+    <div class="container">
+        <!-- 头部导航 -->
+        <div class="header">
+            <div>
+                <div class="header-title">家庭任务</div>
+                <div class="role-badge" id="roleBadge"></div>
             </div>
-
-            <!-- 统计面板 -->
-            <div id="statsPanel" class="stats-panel hidden">
-                <div class="stat-card">
-                    <div class="stat-value" id="totalTasks">0</div>
-                    <div class="stat-label">总任务</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="completedTasks">0</div>
-                    <div class="stat-label">已完成</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="completionRate">0%</div>
-                    <div class="stat-label">完成率</div>
-                </div>
+            <div class="header-actions">
+                <button class="icon-btn" onclick="switchRole()" title="切换角色">🔄</button>
+                <button class="icon-btn" onclick="logout()" title="退出">🚪</button>
             </div>
-
-            <!-- 任务列表 -->
-            <div class="task-list" id="taskList">
-                <div class="empty-state">
-                    <div class="empty-state-icon">📝</div>
-                    <div>加载中...</div>
-                </div>
-            </div>
-
-            <!-- 创建任务浮动按钮 -->
-            <button id="createTaskBtn" class="fab hidden" onclick="openCreateTaskModal()">+</button>
         </div>
-    </div>
 
-    <!-- 创建任务模态框 -->
-    <div id="createTaskModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">创建新任务</h2>
-                <button class="close-btn" onclick="closeCreateTaskModal()">&times;</button>
+        <!-- 统计面板 -->
+        <div id="statsPanel" class="stats-panel hidden">
+            <div class="stat-card">
+                <div class="stat-value" id="totalTasks">0</div>
+                <div class="stat-label">总任务</div>
             </div>
-            
-            <form id="taskForm" onsubmit="createTask(event)">
-                <div class="form-group">
-                    <label>任务标题 *</label>
-                    <input type="text" id="taskTitle" required placeholder="例如:完成数学作业">
-                </div>
+            <div class="stat-card">
+                <div class="stat-value" id="completedTasks">0</div>
+                <div class="stat-label">已完成</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="completionRate">0%</div>
+                <div class="stat-label">完成率</div>
+            </div>
+        </div>
 
-                <div class="form-group">
-                    <label>任务描述</label>
-                    <textarea id="taskDescription" placeholder="详细说明任务要求..."></textarea>
-                </div>
+        <!-- 任务列表 -->
+        <div class="task-list" id="taskList">
+            <div class="empty-state">
+                <div class="empty-state-icon">📝</div>
+                <div>加载中...</div>
+            </div>
+        </div>
 
-                <div class="form-group">
-                    <label>截止日期</label>
-                    <input type="date" id="taskDueDate">
-                </div>
+        <!-- 创建任务浮动按钮 -->
+        <button id="createTaskBtn" class="fab hidden" onclick="openCreateTaskModal()">+</button>
+    </div>
+</div>
 
-                <div class="form-group">
-                    <label>优先级</label>
-                    <select id="taskPriority">
-                        <option value="low">低</option>
-                        <option value="medium" selected>中</option>
-                        <option value="high">高</option>
-                    </select>
-                </div>
+<!-- 创建任务模态框 -->
+<div id="createTaskModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">创建新任务</h2>
+            <button class="close-btn" onclick="closeCreateTaskModal()">&times;</button>
+        </div>
+        
+        <form id="taskForm" onsubmit="createTask(event)">
+            <div class="form-group">
+                <label>任务标题 *</label>
+                <input type="text" id="taskTitle" required placeholder="例如:完成数学作业">
+            </div>
 
-                <div class="form-group">
-                    <label>标签(用逗号分隔)</label>
-                    <input type="text" id="taskTags" placeholder="例如:作业,数学">
-                </div>
+            <div class="form-group">
+                <label>任务描述</label>
+                <textarea id="taskDescription" placeholder="详细说明任务要求..."></textarea>
+            </div>
 
-                <div class="form-group">
-                    <label>上传附件</label>
-                    <div class="file-upload" onclick="document.getElementById('fileInput').click()">
-                        <div>📎 点击上传文件</div>
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">
-                            支持PDF、DOCX、图片、音频、视频
-                        </div>
-                        <input type="file" id="fileInput" multiple
-                          accept=".pdf,.docx,.doc,.jpg,.jpeg,.png,.gif,.mp3,.mp4,.wav,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                          onchange="handleFileSelect(event)">
+            <div class="form-group">
+                <label>截止日期</label>
+                <input type="date" id="taskDueDate">
+            </div>
+
+            <div class="form-group">
+                <label>优先级</label>
+                <select id="taskPriority">
+                    <option value="low">低</option>
+                    <option value="medium" selected>中</option>
+                    <option value="high">高</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>标签(用逗号分隔)</label>
+                <input type="text" id="taskTags" placeholder="例如:作业,数学">
+            </div>
+
+            <div class="form-group">
+                <label>上传附件</label>
+                <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                    <div>📎 点击上传文件</div>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">
+                        支持PDF、DOCX、图片、音频、视频
                     </div>
-                    <div id="uploadedFilesList" class="uploaded-files"></div>
+                    <input type="file" id="fileInput" multiple
+                      accept=".pdf,.docx,.doc,.jpg,.jpeg,.png,.gif,.mp3,.mp4,.wav,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                      onchange="handleFileSelect(event)">
                 </div>
-
-                <button type="submit" class="btn btn-primary">创建任务</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- 附件预览模态框 -->
-    <div id="attachmentModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title" id="attachmentTitle">查看附件</h2>
-                <div>
-                    <!-- 全屏按钮 -->
-                    <button class="tool-btn" id="fullscreenBtn" onclick="toggleAttachmentFullscreen()" title="全屏/退出全屏">⛶</button>
-                    <button class="close-btn" onclick="closeAttachmentModal()">&times;</button>
-                </div>
+                <div id="uploadedFilesList" class="uploaded-files"></div>
             </div>
-            <div id="attachmentContent"></div>
-        </div>
+
+            <button type="submit" class="btn btn-primary">创建任务</button>
+        </form>
     </div>
+</div>
 
-    <!-- 提示消息 -->
-    <div id="toast" class="toast"></div>
+<!-- 附件预览模态框 -->
+<div id="attachmentModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title" id="attachmentTitle">查看附件</h2>
+            <div>
+                <!-- 全屏按钮 -->
+                <button class="tool-btn" id="fullscreenBtn" onclick="toggleAttachmentFullscreen()" title="全屏/退出全屏">⛶</button>
+                <button class="close-btn" onclick="closeAttachmentModal()">&times;</button>
+            </div>
+        </div>
+        <div id="attachmentContent"></div>
+    </div>
+</div>
 
-    <!-- LeanCloud SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.15.2/dist/av-min.js"></script>
-    
-    <script>
-        // ========== LeanCloud 配置 ==========
-        const LEANCLOUD_APP_ID = `YOUR_APP_ID`;
-        const LEANCLOUD_APP_KEY = `YOUR_APP_KEY`;
-        const LEANCLOUD_SERVER_URL = `https://YOUR_SERVER_URL.lc-cn-n1-shared.com`;
+<!-- 提示消息 -->
+<div id="toast" class="toast"></div>
 
-        AV.init({
-            appId: '63f8haa3tIFFuiTc2HeDuEyU-gzGzoHsz',
-            appKey: 'SXeVLTnReJKeptXMnlR98Z8J',
-            serverURL: 'https://63f8haa3.lc-cn-n1-shared.com'
-        });
+<!-- LeanCloud SDK -->
+<script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.15.2/dist/av-min.js"></script>
 
-        // ========== 全局变量 ==========
-        let currentUser = null;
-        let currentRole = null;
-        let currentFamily = null;
-        let tasks = [];
-        let uploadedFiles = [];
+<script>
+    // ========== LeanCloud 配置 ==========
+    const LEANCLOUD_APP_ID = `YOUR_APP_ID`;
+    const LEANCLOUD_APP_KEY = `YOUR_APP_KEY`;
+    const LEANCLOUD_SERVER_URL = `https://YOUR_SERVER_URL.lc-cn-n1-shared.com`;
 
-        // ========== 家庭管理功能 ==========
-        async function createFamily() {
-            try {
-                showToast(`正在创建家庭...`);
-                const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-                const Family = AV.Object.extend(`Family`);
-                const family = new Family();
-                family.set(`inviteCode`, inviteCode);
-                family.set(`createdAt`, new Date());
-                await family.save();
-                
-                localStorage.setItem(`familyId`, family.id);
-                localStorage.setItem(`inviteCode`, inviteCode);
-                
-                alert(`家庭创建成功!\n\n邀请码:${inviteCode}\n\n请将此邀请码分享给孩子`);
-                currentFamily = family;
-                showRoleSelection();
-            } catch (error) {
-                console.error(`创建家庭失败:`, error);
-                showToast(`创建失败,请重试`);
-            }
+    AV.init({
+        appId: '63f8haa3tIFFuiTc2HeDuEyU-gzGzoHsz',
+        appKey: 'SXeVLTnReJKeptXMnlR98Z8J',
+        serverURL: 'https://63f8haa3.lc-cn-n1-shared.com'
+    });
+
+    // ========== 全局变量 ==========
+    let currentUser = null;
+    let currentRole = null;
+    let currentFamily = null;
+    let tasks = [];
+    let uploadedFiles = [];
+
+    // ========== 家庭管理功能 ==========
+    async function createFamily() {
+        try {
+            showToast(`正在创建家庭...`);
+            const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+            const Family = AV.Object.extend(`Family`);
+            const family = new Family();
+            family.set(`inviteCode`, inviteCode);
+            family.set(`createdAt`, new Date());
+            await family.save();
+            
+            localStorage.setItem(`familyId`, family.id);
+            localStorage.setItem(`inviteCode`, inviteCode);
+            
+            alert(`家庭创建成功!\n\n邀请码:${inviteCode}\n\n请将此邀请码分享给孩子`);
+            currentFamily = family;
+            showRoleSelection();
+        } catch (error) {
+            console.error(`创建家庭失败:`, error);
+            showToast(`创建失败,请重试`);
         }
+    }
 
-        async function loginWithCode() {
-            const code = document.getElementById(`inviteCodeInput`).value.trim().toUpperCase();
-            if (!code || code.length !== 6) {
-                showToast(`请输入6位邀请码`);
+    async function loginWithCode() {
+        const code = document.getElementById(`inviteCodeInput`).value.trim().toUpperCase();
+        if (!code || code.length !== 6) {
+            showToast(`请输入6位邀请码`);
+            return;
+        }
+        try {
+            showToast(`正在验证邀请码...`);
+            const query = new AV.Query(`Family`);
+            query.equalTo(`inviteCode`, code);
+            const family = await query.first();
+            if (!family) {
+                showToast(`邀请码无效`);
                 return;
             }
+            localStorage.setItem(`familyId`, family.id);
+            localStorage.setItem(`inviteCode`, code);
+            currentFamily = family;
+            showRoleSelection();
+        } catch (error) {
+            console.error(`登录失败:`, error);
+            showToast(`登录失败,请重试`);
+        }
+    }
+
+    function showRoleSelection() {
+        document.getElementById(`loginForm`).classList.add(`hidden`);
+        document.getElementById(`roleSelection`).classList.remove(`hidden`);
+    }
+
+    function selectRole(role) {
+        currentRole = role;
+        localStorage.setItem(`userRole`, role);
+        document.getElementById(`loginPage`).classList.add(`hidden`);
+        document.getElementById(`mainApp`).classList.remove(`hidden`);
+        initApp();
+    }
+
+    function switchRole() {
+        const newRole = currentRole === `parent` ? `child` : `parent`;
+        selectRole(newRole);
+    }
+
+    function logout() {
+        if (confirm(`确定要退出吗?`)) {
+            localStorage.clear();
+            location.reload();
+        }
+    }
+
+    // ========== 应用初始化 ==========
+    async function initApp() {
+        const roleBadge = document.getElementById(`roleBadge`);
+        roleBadge.textContent = currentRole === `parent` ? `👨‍💼 家长` : `👧 孩子`;
+        if (currentRole === `parent`) {
+            document.getElementById(`statsPanel`).classList.remove(`hidden`);
+            document.getElementById(`createTaskBtn`).classList.remove(`hidden`);
+        } else {
+            document.getElementById(`statsPanel`).classList.add(`hidden`);
+            document.getElementById(`createTaskBtn`).classList.add(`hidden`);
+        }
+        await loadTasks();
+        setupRealtimeSync();
+    }
+
+    // ========== 任务管理功能 ==========
+    async function loadTasks() {
+        try {
+            const familyId = localStorage.getItem(`familyId`);
+            const query = new AV.Query(`Task`);
+            query.equalTo(`familyId`, familyId);
+            query.descending(`createdAt`);
+            const results = await query.find();
+            
+            tasks = results.map(obj => ({
+                id: obj.id,
+                ...obj.toJSON()
+            }));
+            
+            renderTasks();
+            updateStats();
+        } catch (error) {
+            console.error(`加载任务失败:`, error);
+            showToast(`加载失败`);
+        }
+    }
+
+    function renderTasks() {
+        const taskList = document.getElementById(`taskList`);
+        if (tasks.length === 0) {
+            taskList.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📝</div>
+                    <div>还没有任务</div>
+                    ${currentRole === `parent` ? `<div style="margin-top: 8px; font-size: 14px;">点击右下角 + 创建任务</div>` : ``}
+                </div>
+            `;
+            return;
+        }
+        const pending = tasks.filter(t => !t.completed);
+        const completed = tasks.filter(t => t.completed);
+        let html = ``;
+        if (pending.length > 0) {
+            html += `<div class="task-section-title">待完成</div>`;
+            pending.forEach(task => { html += renderTaskCard(task); });
+        }
+        if (completed.length > 0) {
+            html += `<div class="task-section-title">已完成</div>`;
+            completed.forEach(task => { html += renderTaskCard(task); });
+        }
+        taskList.innerHTML = html;
+    }
+
+    function renderTaskCard(task) {
+        const dueDate = task.dueDate ? new Date(task.dueDate) : null;
+        const isOverdue = dueDate && dueDate < new Date() && !task.completed;
+        return `
+            <div class="task-card priority-${task.priority} ${task.completed ? `completed` : ``}">
+                <div class="task-header">
+                    <div class="task-checkbox ${task.completed ? `checked` : ``}" onclick="toggleTask('${task.id}')"></div>
+                    <div class="task-content">
+                        <div class="task-title ${task.completed ? `completed` : ``}">
+                            ${escapeHtml(task.title)}
+                        </div>
+                        ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ``}
+                        <div class="task-meta">
+                            ${task.tags && task.tags.length > 0 ? task.tags.map(tag => 
+                                `<span class="task-tag">#${escapeHtml(tag)}</span>`
+                            ).join(``) : ``}
+                            ${dueDate ? `
+                                <div class="task-due-date ${isOverdue ? `overdue` : ``}">
+                                    📅 ${formatDate(dueDate)}
+                                </div>
+                            ` : ``}
+                        </div>
+                        ${task.attachments && task.attachments.length > 0 ? `
+                            <div class="task-attachments">
+                                ${task.attachments.map((att, idx) => `
+                                    <div class="attachment-item" onclick="viewAttachment('${task.id}', ${idx})">
+                                        ${getFileIcon(att.type, att.name)} ${escapeHtml(att.name)}
+                                    </div>
+                                `).join(``)}
+                            </div>
+                        ` : ``}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    async function toggleTask(taskId) {
+        try {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+            const Task = AV.Object.createWithoutData(`Task`, taskId);
+            Task.set(`completed`, !task.completed);
+            Task.set(`completedAt`, !task.completed ? new Date() : null);
+            await Task.save();
+            
+            task.completed = !task.completed;
+            task.completedAt = task.completed ? new Date() : null;
+            
+            renderTasks();
+            updateStats();
+            showToast(task.completed ? `✓ 任务已完成` : `任务标记为未完成`);
+        } catch (error) {
+            console.error(`更新任务失败:`, error);
+            showToast(`操作失败`);
+        }
+    }
+
+    function updateStats() {
+        if (currentRole !== `parent`) return;
+        const total = tasks.length;
+        const completed = tasks.filter(t => t.completed).length;
+        const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+        document.getElementById(`totalTasks`).textContent = total;
+        document.getElementById(`completedTasks`).textContent = completed;
+        document.getElementById(`completionRate`).textContent = rate + `%`;
+    }
+
+    // ========== 创建任务功能 ==========
+    function openCreateTaskModal() {
+        document.getElementById(`createTaskModal`).classList.add(`active`);
+        document.body.classList.add('no-scroll'); // 锁定背景滚动
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById(`taskDueDate`).value = tomorrow.toISOString().split(`T`)[0];
+    }
+
+    function closeCreateTaskModal() {
+        document.getElementById(`createTaskModal`).classList.remove(`active`);
+        document.body.classList.remove('no-scroll'); // 恢复背景滚动
+        document.getElementById(`taskForm`).reset();
+        uploadedFiles = [];
+        document.getElementById(`uploadedFilesList`).innerHTML = ``;
+    }
+
+    async function handleFileSelect(event) {
+        const files = Array.from(event.target.files);
+        for (const file of files) {
+            if (file.size > 10 * 1024 * 1024) {
+                showToast(`${file.name} 超过10MB限制`);
+                continue;
+            }
             try {
-                showToast(`正在验证邀请码...`);
-                const query = new AV.Query(`Family`);
-                query.equalTo(`inviteCode`, code);
-                const family = await query.first();
-                if (!family) {
-                    showToast(`邀请码无效`);
-                    return;
-                }
-                localStorage.setItem(`familyId`, family.id);
-                localStorage.setItem(`inviteCode`, code);
-                currentFamily = family;
-                showRoleSelection();
+                showToast(`正在上传...`);
+                const avFile = new AV.File(file.name, file);
+                await avFile.save();
+                const secureUrl = toHttps(avFile.url());
+                uploadedFiles.push({ name: file.name, url: secureUrl, type: file.type });
+                renderUploadedFiles();
+                showToast(`${file.name} 上传成功`);
             } catch (error) {
-                console.error(`登录失败:`, error);
-                showToast(`登录失败,请重试`);
+                console.error(`上传失败:`, error);
+                showToast(`${file.name} 上传失败`);
             }
         }
+        event.target.value = ``;
+    }
 
-        function showRoleSelection() {
-            document.getElementById(`loginForm`).classList.add(`hidden`);
-            document.getElementById(`roleSelection`).classList.remove(`hidden`);
+    function renderUploadedFiles() {
+        const list = document.getElementById(`uploadedFilesList`);
+        list.innerHTML = uploadedFiles.map((file, idx) => `
+            <div class="uploaded-file">
+                <span>${getFileIcon(file.type, file.name)} ${escapeHtml(file.name)}</span>
+                <button type="button" class="remove-file" onclick="removeFile(${idx})">&times;</button>
+            </div>
+        `).join(``);
+    }
+
+    function removeFile(index) {
+        uploadedFiles.splice(index, 1);
+        renderUploadedFiles();
+    }
+
+    async function createTask(event) {
+        event.preventDefault();
+        try {
+            showToast(`正在创建任务...`);
+            const title = document.getElementById(`taskTitle`).value.trim();
+            const description = document.getElementById(`taskDescription`).value.trim();
+            const dueDate = document.getElementById(`taskDueDate`).value;
+            const priority = document.getElementById(`taskPriority`).value;
+            const tagsInput = document.getElementById(`taskTags`).value.trim();
+            const tags = tagsInput ? tagsInput.split(`,`).map(t => t.trim()).filter(t => t) : [];
+            
+            const Task = AV.Object.extend(`Task`);
+            const task = new Task();
+            task.set(`familyId`, localStorage.getItem(`familyId`));
+            task.set(`title`, title);
+            task.set(`description`, description);
+            task.set(`dueDate`, dueDate ? new Date(dueDate) : null);
+            task.set(`priority`, priority);
+            task.set(`tags`, tags);
+            task.set(`attachments`, uploadedFiles);
+            task.set(`completed`, false);
+            task.set(`createdBy`, `parent`);
+            await task.save();
+            
+            showToast(`✓ 任务创建成功`);
+            closeCreateTaskModal();
+            await loadTasks();
+        } catch (error) {
+            console.error(`创建任务失败:`, error);
+            showToast(`创建失败,请重试`);
         }
+    }
 
-        function selectRole(role) {
-            currentRole = role;
-            localStorage.setItem(`userRole`, role);
+    // ========== 附件预览功能（增强版） ==========
+    function viewAttachment(taskId, attachmentIndex) {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task || !task.attachments || !task.attachments[attachmentIndex]) return;
+        const attachment = task.attachments[attachmentIndex];
+        const modal = document.getElementById(`attachmentModal`);
+        const title = document.getElementById(`attachmentTitle`);
+        const content = document.getElementById(`attachmentContent`);
+        title.textContent = attachment.name;
+        const safeUrl = toHttps(attachment.url);
+        content.innerHTML = ``;
+
+        // 打开附件预览时锁定背景滚动
+        document.body.classList.add('no-scroll');
+
+        // 图片预览
+        if (attachment.type.startsWith(`image/`)) {
+          content.innerHTML = `
+            <div class="preview-toolbar">
+              <button class="tool-btn" onclick="toggleAttachmentFullscreen()" title="全屏/退出全屏">⛶ 全屏</button>
+              <button class="tool-btn" onclick="closeAttachmentModal()" title="关闭">✖ 关闭</button>
+              <button class="tool-btn" onclick="zoomImage(0.2)">放大+</button>
+              <button class="tool-btn" onclick="zoomImage(-0.2)">缩小-</button>
+              <button class="tool-btn" onclick="resetImageZoom()">复位</button>
+              <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载</button>
+            </div>
+            <div class="image-wrap">
+              <img id="previewImg" src="${safeUrl}" alt="${escapeHtml(attachment.name)}">
+            </div>
+          `;
+          const imgEl = document.getElementById('previewImg');
+          setupImageZoom(imgEl);
+        }
+        else if (attachment.type.startsWith(`video/`)) {
+          content.innerHTML = `
+            <div class="preview-toolbar">
+              <button class="tool-btn" onclick="toggleAttachmentFullscreen()" title="全屏/退出全屏">⛶ 全屏</button>
+              <button class="tool-btn" onclick="closeAttachmentModal()" title="关闭">✖ 关闭</button>
+              <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载视频</button>
+            </div>
+            <video controls src="${safeUrl}" class="preview-iframe"></video>
+          `;
+        }
+        else if (attachment.type.startsWith(`audio/`)) {
+          content.innerHTML = `
+            <div class="preview-toolbar">
+              <button class="tool-btn" onclick="toggleAttachmentFullscreen()" title="全屏/退出全屏">⛶ 全屏</button>
+              <button class="tool-btn" onclick="closeAttachmentModal()" title="关闭">✖ 关闭</button>
+              <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载音频</button>
+            </div>
+            <audio controls src="${safeUrl}" style="width: 100%;"></audio>
+          `;
+        }
+        // PDF
+        else if (isPDF(attachment)) {
+            if (isIOS()) {
+                content.innerHTML = `
+                  <div class="preview-toolbar">
+                    <button class="tool-btn" onclick="pdfZoom(0.2)">放大+</button>
+                    <button class="tool-btn" onclick="pdfZoom(-0.2)">缩小-</button>
+                    <button class="tool-btn" onclick="pdfZoomReset()">复位</button>
+                    <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载PDF</button>
+                  </div>
+                  <div id="pdfCanvasContainer" style="height:70vh; overflow:auto; background:#f9f9f9; border-radius:8px; padding:8px;"></div>
+                `;
+                renderPdfWithPdfJs(safeUrl, 'pdfCanvasContainer');
+            } else {
+                const viewerUrl = `https://mozilla.github.io/pdf.js/web/viewer.html?file=` + encodeURIComponent(safeUrl);
+                content.innerHTML = `
+                  <div class="preview-toolbar">
+                    <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载PDF</button>
+                    <button class="tool-btn" onclick="openExternal('${safeUrl}')">新窗口打开</button>
+                  </div>
+                  <iframe src="${viewerUrl}" class="preview-iframe" allowfullscreen></iframe>
+                `;
+            }
+        }
+        // DOCX/DOC
+        else if (isDOCX(attachment) || isDOC(attachment) || attachment.name.toLowerCase().endsWith('.docx') || attachment.name.toLowerCase().endsWith('.doc')) {
+            const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=` + encodeURIComponent(safeUrl);
+            content.innerHTML = `
+              <div class="preview-toolbar">
+                <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载文件</button>
+              </div>
+              <iframe id="docxPreviewFrame" src="${officeViewerUrl}" class="preview-iframe"
+                      onload="clearDocxTimeout()" onerror="showDocxFallback('${safeUrl}', '${escapeHtml(attachment.name)}')">
+              </iframe>
+              <div id="docxFallback" class="preview-fallback" style="display: none;">
+                <div class="preview-fallback-icon">📄</div>
+                <div>无法预览该Word文件</div>
+                <button class="download-btn" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载文件</button>
+              </div>
+            `;
+            window.docxPreviewTimeout = setTimeout(() => { showDocxFallback(safeUrl, attachment.name); }, 5000);
+        }
+        else {
+            content.innerHTML = `
+              <div class="preview-fallback">
+                <div class="preview-fallback-icon">📄</div>
+                <div>无法预览此文件类型</div>
+                <button class="download-btn" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载文件</button>
+              </div>
+            `;
+        }
+        modal.classList.add(`active`);
+    }
+
+    function clearDocxTimeout() {
+        if (window.docxPreviewTimeout) {
+            clearTimeout(window.docxPreviewTimeout);
+            window.docxPreviewTimeout = null;
+        }
+    }
+
+    function showDocxFallback(url, name) {
+        const iframe = document.getElementById(`docxPreviewFrame`);
+        const fallback = document.getElementById(`docxFallback`);
+        if (iframe && fallback) {
+            iframe.style.display = `none`;
+            fallback.style.display = `block`;
+        }
+        clearDocxTimeout();
+    }
+
+    // 下载文件
+    async function downloadFile(url, name) {
+      const safeUrl = toHttps(url);
+      const ua = navigator.userAgent || '';
+      const isIOSDev = /iPhone|iPad|iPod/i.test(ua);
+      const isAndroid = /Android/i.test(ua);
+      const isWeChat = /MicroMessenger/i.test(ua);
+      const isMobileSafari = isIOSDev && /Safari/i.test(ua) && !/CriOS|FxiOS/i.test(ua);
+
+      try {
+        if (isMobileSafari || isWeChat) {
+          window.open(safeUrl, '_blank', 'noopener');
+          showToast(`已在新窗口打开 ${name}`);
+          return;
+        }
+        const supportsDownloadAttr = 'download' in document.createElement('a');
+        if (!supportsDownloadAttr && (isAndroid || isIOSDev)) {
+          window.open(safeUrl, '_blank', 'noopener');
+          showToast(`已在新窗口打开 ${name}`);
+          return;
+        }
+        const res = await fetch(safeUrl, { mode: 'cors' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const blob = await res.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = objectUrl;
+        a.download = name || 'download';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(objectUrl);
+        showToast(`正在下载 ${name}`);
+      } catch (e) {
+        window.open(safeUrl, '_blank', 'noopener');
+        showToast(`已在新窗口打开 ${name}`);
+      }
+    }
+
+    function closeAttachmentModal() {
+        document.getElementById(`attachmentModal`).classList.remove(`active`, 'fullscreen');
+        document.body.classList.remove('no-scroll'); // 恢复背景滚动
+        clearDocxTimeout();
+    }
+
+    // 附件全屏切换
+    function toggleAttachmentFullscreen(){
+        const modal = document.getElementById('attachmentModal');
+        modal.classList.toggle('fullscreen');
+        // 全屏时保持背景锁定
+        document.body.classList.toggle('no-scroll', modal.classList.contains('fullscreen') || modal.classList.contains('active'));
+    }
+
+    // 图片缩放与拖拽
+    let imageZoomState = { scale: 1, x: 0, y: 0, img: null, dragging: false, startX:0, startY:0 };
+    function setupImageZoom(imgEl){
+        imageZoomState = { scale:1, x:0, y:0, img:imgEl, dragging:false, startX:0, startY:0 };
+        applyImageTransform();
+        imgEl.addEventListener('mousedown', onImgPointerDown);
+        imgEl.addEventListener('touchstart', onImgPointerDown, { passive:false });
+        document.addEventListener('mousemove', onImgPointerMove);
+        document.addEventListener('touchmove', onImgPointerMove, { passive:false });
+        document.addEventListener('mouseup', onImgPointerUp);
+        document.addEventListener('touchend', onImgPointerUp);
+        imgEl.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            zoomImage(delta);
+        }, { passive:false });
+    }
+    function zoomImage(delta){
+        if (!imageZoomState.img) return;
+        imageZoomState.scale = Math.max(1, Math.min(5, imageZoomState.scale + delta));
+        applyImageTransform();
+    }
+    function resetImageZoom(){
+        if (!imageZoomState.img) return;
+        imageZoomState.scale = 1; imageZoomState.x = 0; imageZoomState.y = 0;
+        applyImageTransform();
+    }
+    function applyImageTransform(){
+        const { img, scale, x, y } = imageZoomState;
+        if (!img) return;
+        img.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+    }
+    function onImgPointerDown(e){
+        if (!imageZoomState.img || imageZoomState.scale === 1) return;
+        e.preventDefault();
+        imageZoomState.dragging = true;
+        const p = getPoint(e);
+        imageZoomState.startX = p.x - imageZoomState.x;
+        imageZoomState.startY = p.y - imageZoomState.y;
+    }
+    function onImgPointerMove(e){
+        if (!imageZoomState.dragging) return;
+        e.preventDefault();
+        const p = getPoint(e);
+        imageZoomState.x = p.x - imageZoomState.startX;
+        imageZoomState.y = p.y - imageZoomState.startY;
+        applyImageTransform();
+    }
+    function onImgPointerUp(){ imageZoomState.dragging = false; }
+    function getPoint(e){
+        if (e.touches && e.touches[0]) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        return { x: e.clientX, y: e.clientY };
+    }
+
+    // PDF.js 载入与渲染（iOS 优先）
+    function isIOS(){ return /iPhone|iPad|iPod/i.test(navigator.userAgent || ''); }
+    function openExternal(url){ window.open(url, '_blank', 'noopener'); }
+
+    function loadPdfJsIfNeeded(){
+        if (window.pdfjsLib) return Promise.resolve();
+        return new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
+            s.onload = () => {
+                try{
+                    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+                    resolve();
+                }catch(err){ reject(err); }
+            };
+            s.onerror = reject;
+            document.head.appendChild(s);
+        });
+    }
+
+    async function renderPdfWithPdfJs(url, containerId){
+        try{
+            await loadPdfJsIfNeeded();
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            const pdf = await window.pdfjsLib.getDocument({ url }).promise;
+            const maxPages = Math.min(pdf.numPages, 20); // 防止超多页面影响性能
+            for (let i=1; i<=maxPages; i++){
+                const page = await pdf.getPage(i);
+                const viewport = page.getViewport({ scale: 1.2 });
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                canvas.style.display = 'block';
+                canvas.style.margin = '0 auto 8px auto';
+                container.appendChild(canvas);
+                await page.render({ canvasContext: ctx, viewport }).promise;
+            }
+            container.dataset.scale = '1';
+        }catch(err){
+            openExternal(url);
+            showToast('PDF 预览失败，已在新窗口打开');
+        }
+    }
+    function pdfZoom(delta){
+        const c = document.getElementById('pdfCanvasContainer');
+        if (!c) return;
+        let s = parseFloat(c.dataset.scale || '1');
+        s = Math.max(0.5, Math.min(3, s + delta));
+        c.dataset.scale = String(s);
+        c.style.transform = `scale(${s})`;
+        c.style.transformOrigin = '0 0';
+    }
+    function pdfZoomReset(){
+        const c = document.getElementById('pdfCanvasContainer');
+        if (!c) return;
+        c.dataset.scale = '1';
+        c.style.transform = 'none';
+    }
+
+    // ========== 实时同步功能 ==========
+    function setupRealtimeSync() {
+        setInterval(async () => {
+            await loadTasks();
+        }, 30000);
+    }
+
+    // ========== 工具函数 ==========
+    function showToast(message) {
+        const toast = document.getElementById(`toast`);
+        toast.textContent = message;
+        toast.classList.add(`show`);
+        setTimeout(() => { toast.classList.remove(`show`); }, 2000);
+    }
+
+    function toHttps(url) {
+      try {
+        if (!url) return '';
+        return url.replace(/^http:/i, 'https:');
+      } catch (e) { return url; }
+    }
+
+    function fileExt(name) {
+      if (!name) return '';
+      const idx = name.lastIndexOf('.');
+      return idx >= 0 ? name.substring(idx + 1).toLowerCase() : '';
+    }
+    function isPDF(att) {
+      return att.type === 'application/pdf' || /\.pdf$/i.test(att.name || '');
+    }
+    function isDOCX(att) {
+      return att.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+             || /\.docx$/i.test(att.name || '');
+    }
+    function isDOC(att) {
+      return att.type === 'application/msword' || /\.doc$/i.test(att.name || '');
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement(`div`);
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function formatDate(date) {
+        const d = new Date(date);
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        if (d.toDateString() === today.toDateString()) return `今天`;
+        if (d.toDateString() === tomorrow.toDateString()) return `明天`;
+        return `${d.getMonth() + 1}月${d.getDate()}日`;
+    }
+
+    function getFileIcon(type, name) {
+        const ext = fileExt(name || '');
+        if (type.startsWith('image/')) return '🖼️';
+        if (type.startsWith('video/')) return '🎬';
+        if (type.startsWith('audio/')) return '🎵';
+        if (type === 'application/pdf' || ext === 'pdf') return '📄 PDF';
+        if (type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || ext === 'docx') return '📄 DOCX';
+        if (type === 'application/msword' || ext === 'doc') return '📄 DOC';
+        return '📎';
+    }
+
+    // ========== 页面加载初始化 ==========
+    window.addEventListener(`DOMContentLoaded`, () => {
+        const familyId = localStorage.getItem(`familyId`);
+        const userRole = localStorage.getItem(`userRole`);
+        if (familyId && userRole) {
+            currentRole = userRole;
+            currentFamily = { id: familyId };
             document.getElementById(`loginPage`).classList.add(`hidden`);
             document.getElementById(`mainApp`).classList.remove(`hidden`);
             initApp();
         }
+    });
 
-        function switchRole() {
-            const newRole = currentRole === `parent` ? `child` : `parent`;
-            selectRole(newRole);
-        }
-
-        function logout() {
-            if (confirm(`确定要退出吗?`)) {
-                localStorage.clear();
-                location.reload();
-            }
-        }
-
-        // ========== 应用初始化 ==========
-        async function initApp() {
-            const roleBadge = document.getElementById(`roleBadge`);
-            roleBadge.textContent = currentRole === `parent` ? `👨‍💼 家长` : `👧 孩子`;
-            if (currentRole === `parent`) {
-                document.getElementById(`statsPanel`).classList.remove(`hidden`);
-                document.getElementById(`createTaskBtn`).classList.remove(`hidden`);
-            } else {
-                document.getElementById(`statsPanel`).classList.add(`hidden`);
-                document.getElementById(`createTaskBtn`).classList.add(`hidden`);
-            }
-            await loadTasks();
-            setupRealtimeSync();
-        }
-
-        // ========== 任务管理功能 ==========
-        async function loadTasks() {
-            try {
-                const familyId = localStorage.getItem(`familyId`);
-                const query = new AV.Query(`Task`);
-                query.equalTo(`familyId`, familyId);
-                query.descending(`createdAt`);
-                const results = await query.find();
-                
-                tasks = results.map(obj => ({
-                    id: obj.id,
-                    ...obj.toJSON()
-                }));
-                
-                renderTasks();
-                updateStats();
-            } catch (error) {
-                console.error(`加载任务失败:`, error);
-                showToast(`加载失败`);
-            }
-        }
-
-        function renderTasks() {
-            const taskList = document.getElementById(`taskList`);
-            if (tasks.length === 0) {
-                taskList.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📝</div>
-                        <div>还没有任务</div>
-                        ${currentRole === `parent` ? `<div style="margin-top: 8px; font-size: 14px;">点击右下角 + 创建任务</div>` : ``}
-                    </div>
-                `;
-                return;
-            }
-            const pending = tasks.filter(t => !t.completed);
-            const completed = tasks.filter(t => t.completed);
-            let html = ``;
-            if (pending.length > 0) {
-                html += `<div class="task-section-title">待完成</div>`;
-                pending.forEach(task => { html += renderTaskCard(task); });
-            }
-            if (completed.length > 0) {
-                html += `<div class="task-section-title">已完成</div>`;
-                completed.forEach(task => { html += renderTaskCard(task); });
-            }
-            taskList.innerHTML = html;
-        }
-
-        function renderTaskCard(task) {
-            const dueDate = task.dueDate ? new Date(task.dueDate) : null;
-            const isOverdue = dueDate && dueDate < new Date() && !task.completed;
-            return `
-                <div class="task-card priority-${task.priority} ${task.completed ? `completed` : ``}">
-                    <div class="task-header">
-                        <div class="task-checkbox ${task.completed ? `checked` : ``}" onclick="toggleTask('${task.id}')"></div>
-                        <div class="task-content">
-                            <div class="task-title ${task.completed ? `completed` : ``}">
-                                ${escapeHtml(task.title)}
-                            </div>
-                            ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ``}
-                            <div class="task-meta">
-                                ${task.tags && task.tags.length > 0 ? task.tags.map(tag => 
-                                    `<span class="task-tag">#${escapeHtml(tag)}</span>`
-                                ).join(``) : ``}
-                                ${dueDate ? `
-                                    <div class="task-due-date ${isOverdue ? `overdue` : ``}">
-                                        📅 ${formatDate(dueDate)}
-                                    </div>
-                                ` : ``}
-                            </div>
-                            ${task.attachments && task.attachments.length > 0 ? `
-                                <div class="task-attachments">
-                                    ${task.attachments.map((att, idx) => `
-                                        <div class="attachment-item" onclick="viewAttachment('${task.id}', ${idx})">
-                                            ${getFileIcon(att.type, att.name)} ${escapeHtml(att.name)}
-                                        </div>
-                                    `).join(``)}
-                                </div>
-                            ` : ``}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        async function toggleTask(taskId) {
-            try {
-                const task = tasks.find(t => t.id === taskId);
-                if (!task) return;
-                const Task = AV.Object.createWithoutData(`Task`, taskId);
-                Task.set(`completed`, !task.completed);
-                Task.set(`completedAt`, !task.completed ? new Date() : null);
-                await Task.save();
-                
-                task.completed = !task.completed;
-                task.completedAt = task.completed ? new Date() : null;
-                
-                renderTasks();
-                updateStats();
-                showToast(task.completed ? `✓ 任务已完成` : `任务标记为未完成`);
-            } catch (error) {
-                console.error(`更新任务失败:`, error);
-                showToast(`操作失败`);
-            }
-        }
-
-        function updateStats() {
-            if (currentRole !== `parent`) return;
-            const total = tasks.length;
-            const completed = tasks.filter(t => t.completed).length;
-            const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
-            document.getElementById(`totalTasks`).textContent = total;
-            document.getElementById(`completedTasks`).textContent = completed;
-            document.getElementById(`completionRate`).textContent = rate + `%`;
-        }
-
-        // ========== 创建任务功能 ==========
-        function openCreateTaskModal() {
-            document.getElementById(`createTaskModal`).classList.add(`active`);
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            document.getElementById(`taskDueDate`).value = tomorrow.toISOString().split(`T`)[0];
-        }
-
-        function closeCreateTaskModal() {
-            document.getElementById(`createTaskModal`).classList.remove(`active`);
-            document.getElementById(`taskForm`).reset();
-            uploadedFiles = [];
-            document.getElementById(`uploadedFilesList`).innerHTML = ``;
-        }
-
-        async function handleFileSelect(event) {
-            const files = Array.from(event.target.files);
-            for (const file of files) {
-                if (file.size > 10 * 1024 * 1024) {
-                    showToast(`${file.name} 超过10MB限制`);
-                    continue;
-                }
-                try {
-                    showToast(`正在上传...`);
-                    const avFile = new AV.File(file.name, file);
-                    await avFile.save();
-                    const secureUrl = toHttps(avFile.url());
-                    uploadedFiles.push({ name: file.name, url: secureUrl, type: file.type });
-                    renderUploadedFiles();
-                    showToast(`${file.name} 上传成功`);
-                } catch (error) {
-                    console.error(`上传失败:`, error);
-                    showToast(`${file.name} 上传失败`);
-                }
-            }
-            event.target.value = ``;
-        }
-
-        function renderUploadedFiles() {
-            const list = document.getElementById(`uploadedFilesList`);
-            list.innerHTML = uploadedFiles.map((file, idx) => `
-                <div class="uploaded-file">
-                    <span>${getFileIcon(file.type, file.name)} ${escapeHtml(file.name)}</span>
-                    <button type="button" class="remove-file" onclick="removeFile(${idx})">&times;</button>
-                </div>
-            `).join(``);
-        }
-
-        function removeFile(index) {
-            uploadedFiles.splice(index, 1);
-            renderUploadedFiles();
-        }
-
-        async function createTask(event) {
-            event.preventDefault();
-            try {
-                showToast(`正在创建任务...`);
-                const title = document.getElementById(`taskTitle`).value.trim();
-                const description = document.getElementById(`taskDescription`).value.trim();
-                const dueDate = document.getElementById(`taskDueDate`).value;
-                const priority = document.getElementById(`taskPriority`).value;
-                const tagsInput = document.getElementById(`taskTags`).value.trim();
-                const tags = tagsInput ? tagsInput.split(`,`).map(t => t.trim()).filter(t => t) : [];
-                
-                const Task = AV.Object.extend(`Task`);
-                const task = new Task();
-                task.set(`familyId`, localStorage.getItem(`familyId`));
-                task.set(`title`, title);
-                task.set(`description`, description);
-                task.set(`dueDate`, dueDate ? new Date(dueDate) : null);
-                task.set(`priority`, priority);
-                task.set(`tags`, tags);
-                task.set(`attachments`, uploadedFiles);
-                task.set(`completed`, false);
-                task.set(`createdBy`, `parent`);
-                await task.save();
-                
-                showToast(`✓ 任务创建成功`);
-                closeCreateTaskModal();
-                await loadTasks();
-            } catch (error) {
-                console.error(`创建任务失败:`, error);
-                showToast(`创建失败,请重试`);
-            }
-        }
-
-        // ========== 附件预览功能（增强版） ==========
-        function viewAttachment(taskId, attachmentIndex) {
-            const task = tasks.find(t => t.id === taskId);
-            if (!task || !task.attachments || !task.attachments[attachmentIndex]) return;
-            const attachment = task.attachments[attachmentIndex];
-            const modal = document.getElementById(`attachmentModal`);
-            const title = document.getElementById(`attachmentTitle`);
-            const content = document.getElementById(`attachmentContent`);
-            title.textContent = attachment.name;
-            const safeUrl = toHttps(attachment.url);
-            content.innerHTML = ``;
-
-            // 图片预览：新增放大/缩小/复位与下载按钮（容器已改为flex自适应）
-           if (attachment.type.startsWith(`image/`)) {
-  content.innerHTML = `
-    <div class="preview-toolbar">
-      <button class="tool-btn" onclick="toggleAttachmentFullscreen()" title="全屏/退出全屏">⛶ 全屏</button>
-      <button class="tool-btn" onclick="closeAttachmentModal()" title="关闭">✖ 关闭</button>
-      <button class="tool-btn" onclick="zoomImage(0.2)">放大+</button>
-      <button class="tool-btn" onclick="zoomImage(-0.2)">缩小-</button>
-      <button class="tool-btn" onclick="resetImageZoom()">复位</button>
-      <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载</button>
-    </div>
-    <div class="image-wrap">
-      <img id="previewImg" src="${safeUrl}" alt="${escapeHtml(attachment.name)}">
-    </div>
-  `;
-  const imgEl = document.getElementById('previewImg');
-  setupImageZoom(imgEl);
-}
-else if (attachment.type.startsWith(`video/`)) {
-  content.innerHTML = `
-    <div class="preview-toolbar">
-      <button class="tool-btn" onclick="toggleAttachmentFullscreen()" title="全屏/退出全屏">⛶ 全屏</button>
-      <button class="tool-btn" onclick="closeAttachmentModal()" title="关闭">✖ 关闭</button>
-      <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载视频</button>
-    </div>
-    <video controls src="${safeUrl}" class="preview-iframe"></video>
-  `;
-}
-else if (attachment.type.startsWith(`audio/`)) {
-  content.innerHTML = `
-    <div class="preview-toolbar">
-      <button class="tool-btn" onclick="toggleAttachmentFullscreen()" title="全屏/退出全屏">⛶ 全屏</button>
-      <button class="tool-btn" onclick="closeAttachmentModal()" title="关闭">✖ 关闭</button>
-      <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载音频</button>
-    </div>
-    <audio controls src="${safeUrl}" style="width: 100%;"></audio>
-  `;
-}
-            // PDF：iOS 优先用 pdf.js 渲染，其他平台保留原 viewer，并都提供下载/外部打开
-            else if (isPDF(attachment)) {
-                if (isIOS()) {
-                    content.innerHTML = `
-                      <div class="preview-toolbar">
-                        <button class="tool-btn" onclick="pdfZoom(0.2)">放大+</button>
-                        <button class="tool-btn" onclick="pdfZoom(-0.2)">缩小-</button>
-                        <button class="tool-btn" onclick="pdfZoomReset()">复位</button>
-                        <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载PDF</button>
-                      </div>
-                      <div id="pdfCanvasContainer" style="height:70vh; overflow:auto; background:#f9f9f9; border-radius:8px; padding:8px;"></div>
-                    `;
-                    renderPdfWithPdfJs(safeUrl, 'pdfCanvasContainer');
-                } else {
-                    const viewerUrl = `https://mozilla.github.io/pdf.js/web/viewer.html?file=` + encodeURIComponent(safeUrl);
-                    content.innerHTML = `
-                      <div class="preview-toolbar">
-                        <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载PDF</button>
-                        <button class="tool-btn" onclick="openExternal('${safeUrl}')">新窗口打开</button>
-                      </div>
-                      <iframe src="${viewerUrl}" class="preview-iframe" allowfullscreen></iframe>
-                    `;
-                }
-            }
-            // DOCX/DOC 预览：保持原逻辑，增加上方工具栏的下载按钮
-            else if (isDOCX(attachment) || isDOC(attachment) || attachment.name.toLowerCase().endsWith('.docx') || attachment.name.toLowerCase().endsWith('.doc')) {
-                const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=` + encodeURIComponent(safeUrl);
-                content.innerHTML = `
-                  <div class="preview-toolbar">
-                    <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载文件</button>
-                  </div>
-                  <iframe id="docxPreviewFrame" src="${officeViewerUrl}" class="preview-iframe"
-                          onload="clearDocxTimeout()" onerror="showDocxFallback('${safeUrl}', '${escapeHtml(attachment.name)}')">
-                  </iframe>
-                  <div id="docxFallback" class="preview-fallback" style="display: none;">
-                    <div class="preview-fallback-icon">📄</div>
-                    <div>无法预览该Word文件</div>
-                    <button class="download-btn" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载文件</button>
-                  </div>
-                `;
-                window.docxPreviewTimeout = setTimeout(() => { showDocxFallback(safeUrl, attachment.name); }, 5000);
-            }
-            else {
-                content.innerHTML = `
-                  <div class="preview-fallback">
-                    <div class="preview-fallback-icon">📄</div>
-                    <div>无法预览此文件类型</div>
-                    <button class="download-btn" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载文件</button>
-                  </div>
-                `;
-            }
-            modal.classList.add(`active`);
-        }
-
-        function clearDocxTimeout() {
-            if (window.docxPreviewTimeout) {
-                clearTimeout(window.docxPreviewTimeout);
-                window.docxPreviewTimeout = null;
-            }
-        }
-
-        function showDocxFallback(url, name) {
-            const iframe = document.getElementById(`docxPreviewFrame`);
-            const fallback = document.getElementById(`docxFallback`);
-            if (iframe && fallback) {
-                iframe.style.display = `none`;
-                fallback.style.display = `block`;
-            }
-            clearDocxTimeout();
-        }
-
-        // 下载文件（保留原逻辑）
-        async function downloadFile(url, name) {
-          const safeUrl = toHttps(url);
-          const ua = navigator.userAgent || '';
-          const isIOS = /iPhone|iPad|iPod/i.test(ua);
-          const isAndroid = /Android/i.test(ua);
-          const isWeChat = /MicroMessenger/i.test(ua);
-          const isMobileSafari = isIOS && /Safari/i.test(ua) && !/CriOS|FxiOS/i.test(ua);
-
-          try {
-            if (isMobileSafari || isWeChat) {
-              window.open(safeUrl, '_blank', 'noopener');
-              showToast(`已在新窗口打开 ${name}`);
-              return;
-            }
-            const supportsDownloadAttr = 'download' in document.createElement('a');
-            if (!supportsDownloadAttr && (isAndroid || isIOS)) {
-              window.open(safeUrl, '_blank', 'noopener');
-              showToast(`已在新窗口打开 ${name}`);
-              return;
-            }
-            const res = await fetch(safeUrl, { mode: 'cors' });
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            const blob = await res.blob();
-            const objectUrl = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = objectUrl;
-            a.download = name || 'download';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(objectUrl);
-            showToast(`正在下载 ${name}`);
-          } catch (e) {
-            window.open(safeUrl, '_blank', 'noopener');
-            showToast(`已在新窗口打开 ${name}`);
-          }
-        }
-
-        function closeAttachmentModal() {
-            document.getElementById(`attachmentModal`).classList.remove(`active`, 'fullscreen');
-            document.body.classList.remove('no-scroll');
-            clearDocxTimeout();
-        }
-
-        // 附件全屏切换（保留，配合flex布局生效）
-        function toggleAttachmentFullscreen(){
-            const modal = document.getElementById('attachmentModal');
-            modal.classList.toggle('fullscreen');
-            document.body.classList.toggle('no-scroll', modal.classList.contains('fullscreen'));
-        }
-
-        // 图片缩放与拖拽（保留逻辑）
-        let imageZoomState = { scale: 1, x: 0, y: 0, img: null, dragging: false, startX:0, startY:0 };
-        function setupImageZoom(imgEl){
-            imageZoomState = { scale:1, x:0, y:0, img:imgEl, dragging:false, startX:0, startY:0 };
-            applyImageTransform();
-            imgEl.addEventListener('mousedown', onImgPointerDown);
-            imgEl.addEventListener('touchstart', onImgPointerDown, { passive:false });
-            document.addEventListener('mousemove', onImgPointerMove);
-            document.addEventListener('touchmove', onImgPointerMove, { passive:false });
-            document.addEventListener('mouseup', onImgPointerUp);
-            document.addEventListener('touchend', onImgPointerUp);
-            imgEl.addEventListener('wheel', (e) => {
-                e.preventDefault();
-                const delta = e.deltaY > 0 ? -0.1 : 0.1;
-                zoomImage(delta);
-            }, { passive:false });
-        }
-        function zoomImage(delta){
-            if (!imageZoomState.img) return;
-            imageZoomState.scale = Math.max(1, Math.min(5, imageZoomState.scale + delta));
-            applyImageTransform();
-        }
-        function resetImageZoom(){
-            if (!imageZoomState.img) return;
-            imageZoomState.scale = 1; imageZoomState.x = 0; imageZoomState.y = 0;
-            applyImageTransform();
-        }
-        function applyImageTransform(){
-            const { img, scale, x, y } = imageZoomState;
-            if (!img) return;
-            img.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
-        }
-        function onImgPointerDown(e){
-            if (!imageZoomState.img || imageZoomState.scale === 1) return;
+    // ========== 安全功能 ==========
+    document.addEventListener('click', (e) => {
+        const a = e.target.closest('a');
+        if (!a) return;
+        const href = a.getAttribute('href') || '';
+        const isData = href.startsWith('data:');
+        const isSameOrigin = href.startsWith(location.origin);
+        const isDownload = a.classList.contains('download-btn') || a.getAttribute('download') !== null || a.dataset.allowExternal === 'true';
+        if (!isData && !isSameOrigin && !isDownload) {
             e.preventDefault();
-            imageZoomState.dragging = true;
-            const p = getPoint(e);
-            imageZoomState.startX = p.x - imageZoomState.x;
-            imageZoomState.startY = p.y - imageZoomState.y;
+            showToast(`为了安全,已禁用外部链接`);
         }
-        function onImgPointerMove(e){
-            if (!imageZoomState.dragging) return;
-            e.preventDefault();
-            const p = getPoint(e);
-            imageZoomState.x = p.x - imageZoomState.startX;
-            imageZoomState.y = p.y - imageZoomState.startY;
-            applyImageTransform();
-        }
-        function onImgPointerUp(){ imageZoomState.dragging = false; }
-        function getPoint(e){
-            if (e.touches && e.touches[0]) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-            return { x: e.clientX, y: e.clientY };
-        }
+    });
+</script>
 
-        // PDF.js 载入与渲染（iOS 优先）
-        function isIOS(){ return /iPhone|iPad|iPod/i.test(navigator.userAgent || ''); }
-        function openExternal(url){ window.open(url, '_blank', 'noopener'); }
+<!-- 页面生成日期: 2025-12-11 -->
 
-        function loadPdfJsIfNeeded(){
-            if (window.pdfjsLib) return Promise.resolve();
-            return new Promise((resolve, reject) => {
-                const s = document.createElement('script');
-                s.src = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
-                s.onload = () => {
-                    try{
-                        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
-                        resolve();
-                    }catch(err){ reject(err); }
-                };
-                s.onerror = reject;
-                document.head.appendChild(s);
-            });
-        }
-
-        async function renderPdfWithPdfJs(url, containerId){
-            try{
-                await loadPdfJsIfNeeded();
-                const container = document.getElementById(containerId);
-                container.innerHTML = '';
-                const pdf = await window.pdfjsLib.getDocument({ url }).promise;
-                const maxPages = Math.min(pdf.numPages, 20); // 防止超多页面影响性能
-                for (let i=1; i<=maxPages; i++){
-                    const page = await pdf.getPage(i);
-                    const viewport = page.getViewport({ scale: 1.2 });
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = viewport.width;
-                    canvas.height = viewport.height;
-                    canvas.style.display = 'block';
-                    canvas.style.margin = '0 auto 8px auto';
-                    container.appendChild(canvas);
-                    await page.render({ canvasContext: ctx, viewport }).promise;
-                }
-                container.dataset.scale = '1';
-            }catch(err){
-                openExternal(url);
-                showToast('PDF 预览失败，已在新窗口打开');
-            }
-        }
-        function pdfZoom(delta){
-            const c = document.getElementById('pdfCanvasContainer');
-            if (!c) return;
-            let s = parseFloat(c.dataset.scale || '1');
-            s = Math.max(0.5, Math.min(3, s + delta));
-            c.dataset.scale = String(s);
-            c.style.transform = `scale(${s})`;
-            c.style.transformOrigin = '0 0';
-        }
-        function pdfZoomReset(){
-            const c = document.getElementById('pdfCanvasContainer');
-            if (!c) return;
-            c.dataset.scale = '1';
-            c.style.transform = 'none';
-        }
-
-        // ========== 实时同步功能 ==========
-        function setupRealtimeSync() {
-            setInterval(async () => {
-                await loadTasks();
-            }, 30000);
-        }
-
-        // ========== 工具函数 ==========
-        function showToast(message) {
-            const toast = document.getElementById(`toast`);
-            toast.textContent = message;
-            toast.classList.add(`show`);
-            setTimeout(() => { toast.classList.remove(`show`); }, 2000);
-        }
-
-        function toHttps(url) {
-          try {
-            if (!url) return '';
-            return url.replace(/^http:/i, 'https:');
-          } catch (e) { return url; }
-        }
-
-        function fileExt(name) {
-          if (!name) return '';
-          const idx = name.lastIndexOf('.');
-          return idx >= 0 ? name.substring(idx + 1).toLowerCase() : '';
-        }
-        function isPDF(att) {
-          return att.type === 'application/pdf' || /\.pdf$/i.test(att.name || '');
-        }
-        function isDOCX(att) {
-          return att.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-                 || /\.docx$/i.test(att.name || '');
-        }
-        function isDOC(att) {
-          return att.type === 'application/msword' || /\.doc$/i.test(att.name || '');
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement(`div`);
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function formatDate(date) {
-            const d = new Date(date);
-            const today = new Date();
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            if (d.toDateString() === today.toDateString()) return `今天`;
-            if (d.toDateString() === tomorrow.toDateString()) return `明天`;
-            return `${d.getMonth() + 1}月${d.getDate()}日`;
-        }
-
-        function getFileIcon(type, name) {
-            const ext = fileExt(name || '');
-            if (type.startsWith('image/')) return '🖼️';
-            if (type.startsWith('video/')) return '🎬';
-            if (type.startsWith('audio/')) return '🎵';
-            if (type === 'application/pdf' || ext === 'pdf') return '📄 PDF';
-            if (type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || ext === 'docx') return '📄 DOCX';
-            if (type === 'application/msword' || ext === 'doc') return '📄 DOC';
-            return '📎';
-        }
-
-        // ========== 页面加载初始化 ==========
-        window.addEventListener(`DOMContentLoaded`, () => {
-            const familyId = localStorage.getItem(`familyId`);
-            const userRole = localStorage.getItem(`userRole`);
-            if (familyId && userRole) {
-                currentRole = userRole;
-                currentFamily = { id: familyId };
-                document.getElementById(`loginPage`).classList.add(`hidden`);
-                document.getElementById(`mainApp`).classList.remove(`hidden`);
-                initApp();
-            }
-        });
-
-        // ========== 安全功能 ==========
-        document.addEventListener('click', (e) => {
-            const a = e.target.closest('a');
-            if (!a) return;
-            const href = a.getAttribute('href') || '';
-            const isData = href.startsWith('data:');
-            const isSameOrigin = href.startsWith(location.origin);
-            const isDownload = a.classList.contains('download-btn') || a.getAttribute('download') !== null || a.dataset.allowExternal === 'true';
-            if (!isData && !isSameOrigin && !isDownload) {
-                e.preventDefault();
-                showToast(`为了安全,已禁用外部链接`);
-            }
-        });
-    </script>
-    
-    <!-- 页面生成日期: 2025-12-11 -->
 </body>
 </html>
