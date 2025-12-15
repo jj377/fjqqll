@@ -174,13 +174,26 @@
             background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;
         }
         .modal.active { display: flex; }
+
+        /* 关键改动：modal-content采用flex纵向布局，限制总高；附件内容区滚动 */
         .modal-content {
             background: white; border-radius: 16px; padding: 24px;
-            width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto;
+            width: 90%; max-width: 500px; max-height: 90vh;
+            display: flex; flex-direction: column;
+            overflow: hidden; /* 让滚动发生在内容区 */
         }
         .modal-header {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+            flex: 0 0 auto; /* 头部固定高度 */
+            position: sticky; top: 0; z-index: 10; background: #fff; /* 始终可见 */
         }
+        #attachmentContent{
+            flex: 1 1 auto; /* 填充剩余空间 */
+            overflow: auto; /* 只滚动内容区，不影响头部 */
+            display: flex; flex-direction: column;
+            min-height: 0; /* 允许flex子项在容器内正确收缩 */
+        }
+
         .modal-title { font-size: 20px; font-weight: 600; }
         .close-btn {
             background: none; border: none; font-size: 28px;
@@ -261,11 +274,12 @@
         }
         .download-btn:hover { background: #357ABD; }
 
-        /* 预览工具栏与全屏（新增） */
+        /* 预览工具栏与全屏（保留并调整） */
         .preview-toolbar{
             display:flex; gap:8px; justify-content:flex-end; align-items:center;
             margin:8px 0; position: sticky; top:0; background:#fff; z-index:5;
             padding:8px 0; border-bottom:1px solid var(--border-color);
+            flex: 0 0 auto; /* 工具栏不挤压内容区 */
         }
         .tool-btn{
             padding:6px 10px; border:1px solid var(--border-color); background:#fff;
@@ -273,19 +287,31 @@
         }
         .tool-btn.primary{ background:var(--primary-color); color:#fff; border-color:var(--primary-color); }
 
+        /* 关键改动：image-wrap采用flex填充，普通/全屏自适应，图片居中contain */
         .image-wrap{
-            width:100%; height:calc(70vh - 50px); overflow:hidden; position:relative;
+            width:100%;
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: auto;
+            position: relative;
             background:#00000008; border-radius:8px;
+            display: flex; align-items: center; justify-content: center;
         }
         .image-wrap img{
-            max-width:100%; max-height:100%; transform-origin:center center;
+            max-width:100%; max-height:100%;
+            width: auto; height: auto;
+            transform-origin:center center;
             user-select:none; -webkit-user-drag:none; touch-action:none;
             display:block; margin:0 auto;
+            object-fit: contain; /* 保持完整可见 */
         }
 
         .modal.fullscreen .modal-content{
             width:100vw; height:100vh; max-width:none; max-height:none;
             border-radius:0; padding:12px;
+        }
+        .modal.fullscreen #attachmentContent{
+            flex: 1 1 auto; /* 全屏模式下仍填充剩余空间 */
         }
         .modal.fullscreen .preview-iframe{ height:calc(100vh - 100px); }
         body.no-scroll{ overflow:hidden; }
@@ -294,7 +320,7 @@
             .stats-panel { grid-template-columns: repeat(2, 1fr); }
             .stat-card:last-child { grid-column: 1 / -1; }
             .preview-iframe { height: 50vh; }
-            .image-wrap{ height:calc(50vh - 40px); }
+            /* 移动端下，内容区仍采用flex填充，image-wrap不使用固定高度 */
         }
     </style>
 </head>
@@ -430,7 +456,7 @@
             <div class="modal-header">
                 <h2 class="modal-title" id="attachmentTitle">查看附件</h2>
                 <div>
-                    <!-- 新增全屏按钮 -->
+                    <!-- 全屏按钮 -->
                     <button class="tool-btn" id="fullscreenBtn" onclick="toggleAttachmentFullscreen()" title="全屏/退出全屏">⛶</button>
                     <button class="close-btn" onclick="closeAttachmentModal()">&times;</button>
                 </div>
@@ -766,7 +792,7 @@
             const safeUrl = toHttps(attachment.url);
             content.innerHTML = ``;
 
-            // 图片预览：新增放大/缩小/复位与下载按钮
+            // 图片预览：新增放大/缩小/复位与下载按钮（容器已改为flex自适应）
             if (attachment.type.startsWith(`image/`)) {
                 content.innerHTML = `
                   <div class="preview-toolbar">
@@ -914,14 +940,14 @@
             clearDocxTimeout();
         }
 
-        // 新增：附件全屏切换
+        // 附件全屏切换（保留，配合flex布局生效）
         function toggleAttachmentFullscreen(){
             const modal = document.getElementById('attachmentModal');
             modal.classList.toggle('fullscreen');
             document.body.classList.toggle('no-scroll', modal.classList.contains('fullscreen'));
         }
 
-        // 新增：图片缩放与拖拽（最小实现）
+        // 图片缩放与拖拽（保留逻辑）
         let imageZoomState = { scale: 1, x: 0, y: 0, img: null, dragging: false, startX:0, startY:0 };
         function setupImageZoom(imgEl){
             imageZoomState = { scale:1, x:0, y:0, img:imgEl, dragging:false, startX:0, startY:0 };
@@ -932,7 +958,6 @@
             document.addEventListener('touchmove', onImgPointerMove, { passive:false });
             document.addEventListener('mouseup', onImgPointerUp);
             document.addEventListener('touchend', onImgPointerUp);
-            // 鼠标滚轮缩放（桌面端）
             imgEl.addEventListener('wheel', (e) => {
                 e.preventDefault();
                 const delta = e.deltaY > 0 ? -0.1 : 0.1;
@@ -976,7 +1001,7 @@
             return { x: e.clientX, y: e.clientY };
         }
 
-        // 新增：PDF.js 载入与渲染（iOS 优先）
+        // PDF.js 载入与渲染（iOS 优先）
         function isIOS(){ return /iPhone|iPad|iPod/i.test(navigator.userAgent || ''); }
         function openExternal(url){ window.open(url, '_blank', 'noopener'); }
 
@@ -1017,7 +1042,6 @@
                 }
                 container.dataset.scale = '1';
             }catch(err){
-                // 失败时降级为新窗口打开
                 openExternal(url);
                 showToast('PDF 预览失败，已在新窗口打开');
             }
