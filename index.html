@@ -7,8 +7,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+
     <title>家庭任务助手</title>
+    
+    <!-- PWA Manifest Link -->
     <link rel="manifest" href="manifest.json" type="application/manifest+json">
+
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -23,991 +27,1110 @@
             --text-secondary: #666666;
             --border-color: #E1E8ED;
             --shadow: 0 2px 8px rgba(0,0,0,0.1);
-            --vh: 1vh;
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background: var(--bg-color);
             color: var(--text-primary);
             line-height: 1.6;
-            overflow-x: hidden;
         }
         
-        .container { 
-            max-width: 600px; 
-            margin: 0 auto; 
-            min-height: calc(var(--vh, 1vh) * 100);
-            background: var(--card-bg); 
-        }
-        
+        .container { max-width: 600px; margin: 0 auto; min-height: 100vh; background: var(--card-bg); }
         .hidden { display: none !important; }
         
-        /* Header */
+        /* 登录页面 */
+        #loginPage {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .login-card {
+            background: white; border-radius: 16px; padding: 40px 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2); width: 100%; max-width: 400px;
+        }
+        
+        .login-title { font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 10px; color: var(--primary-color); }
+        .login-subtitle { text-align: center; color: var(--text-secondary); margin-bottom: 30px; font-size: 14px; }
+        
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 500; }
+        .input-group input {
+            width: 100%; padding: 12px 16px; border: 2px solid var(--border-color);
+            border-radius: 8px; font-size: 16px;
+        }
+        .input-group input:focus { outline: none; border-color: var(--primary-color); }
+        
+        .btn {
+            width: 100%; padding: 14px; border: none; border-radius: 8px;
+            font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+        }
+        .btn-primary { background: var(--primary-color); color: white; }
+        .btn-primary:hover { background: #357ABD; transform: translateY(-2px); }
+        .btn-secondary { background: var(--text-secondary); color: white; margin-top: 10px; }
+        
+        .divider {
+            text-align: center; margin: 20px 0; color: var(--text-secondary); position: relative;
+        }
+        .divider::before, .divider::after {
+            content: ''; position: absolute; top: 50%; width: 40%; height: 1px;
+            background: var(--border-color);
+        }
+        .divider::before { left: 0; }
+        .divider::after { right: 0; }
+        
+        /* 头部 */
         .header {
-            background: var(--primary-color);
-            color: white;
-            padding: 16px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            background: var(--primary-color); color: white; padding: 16px 20px;
+            display: flex; justify-content: space-between; align-items: center;
         }
-        
-        .header-title { 
-            font-size: 20px; 
-            font-weight: 600; 
-        }
-        
+        .header-title { font-size: 20px; font-weight: 600; }
         .role-badge {
-            background: rgba(255,255,255,0.2);
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 14px;
+            background: rgba(255,255,255,0.2); padding: 4px 12px;
+            border-radius: 12px; font-size: 14px;
+        }
+        .header-actions { display: flex; gap: 10px; }
+        .icon-btn {
+            background: rgba(255,255,255,0.2); border: none; color: white;
+            width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
         }
         
-        /* Stats Panel */
+        /* 浮动按钮 */
+        .fab {
+            position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px;
+            background: var(--primary-color); border-radius: 50%; border: none;
+            color: white; font-size: 28px; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000;
+        }
+        .fab:hover { transform: scale(1.1); }
+        
+        /* 统计面板 */
         .stats-panel {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            padding: 20px;
-            background: var(--bg-color);
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+            padding: 20px; background: var(--bg-color);
         }
-        
         .stat-card {
-            background: white;
-            padding: 16px;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: var(--shadow);
+            background: white; padding: 16px; border-radius: 12px;
+            text-align: center; box-shadow: var(--shadow);
         }
+        .stat-value { font-size: 28px; font-weight: 700; color: var(--primary-color); }
+        .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
         
-        .stat-value { 
-            font-size: 28px; 
-            font-weight: 700; 
-            color: var(--primary-color); 
-        }
-        
-        .stat-label { 
-            font-size: 12px; 
-            color: var(--text-secondary); 
-            margin-top: 4px; 
-        }
-        
-        /* Task List */
-        .task-list { 
-            padding: 0 20px 80px 20px; 
-        }
-        
+        /* 任务列表 */
+        .task-list { padding: 0 20px 80px 20px; }
         .task-section-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin: 20px 0 10px 0;
-            text-transform: uppercase;
+            font-size: 14px; font-weight: 600; color: var(--text-secondary);
+            margin: 20px 0 10px 0; text-transform: uppercase;
         }
         
         .task-card {
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 12px;
-            box-shadow: var(--shadow);
-            border-left: 4px solid var(--primary-color);
+            background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px;
+            box-shadow: var(--shadow); border-left: 4px solid transparent;
         }
+        .task-card.priority-high { border-left-color: var(--danger-color); }
+        .task-card.priority-medium { border-left-color: var(--warning-color); }
+        .task-card.priority-low { border-left-color: var(--success-color); }
+        .task-card.completed { opacity: 0.6; background: #f9f9f9; }
         
-        .task-header { 
-            display: flex; 
-            align-items: flex-start; 
-            gap: 12px; 
+        .task-header { display: flex; align-items: flex-start; gap: 12px; }
+        .task-checkbox {
+            width: 24px; height: 24px; min-width: 24px; border: 2px solid var(--border-color);
+            border-radius: 6px; cursor: pointer; display: flex; align-items: center;
+            justify-content: center;
+        }
+        .task-checkbox:hover { border-color: var(--primary-color); }
+        .task-checkbox.checked {
+            background: var(--success-color); border-color: var(--success-color);
+        }
+        .task-checkbox.checked::after {
+            content: '✓'; color: white; font-size: 16px; font-weight: bold;
         }
         
         .task-content { flex: 1; }
+        .task-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+        .task-title.completed { text-decoration: line-through; color: var(--text-secondary); }
+        .task-description { font-size: 14px; color: var(--text-secondary); margin-bottom: 8px; }
         
-        .task-title { 
-            font-size: 16px; 
-            font-weight: 600; 
-            margin-bottom: 4px; 
+        .task-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+        .task-tag {
+            display: inline-block; padding: 4px 10px; background: var(--bg-color);
+            border-radius: 12px; font-size: 12px; color: var(--text-secondary);
         }
+        .task-due-date { font-size: 12px; color: var(--text-secondary); }
+        .task-due-date.overdue { color: var(--danger-color); font-weight: 600; }
         
-        .task-description { 
-            font-size: 14px; 
-            color: var(--text-secondary); 
-            margin-bottom: 8px; 
-        }
-        
-        .task-attachments { 
-            margin-top: 12px; 
-            display: flex; 
-            flex-wrap: wrap; 
-            gap: 8px; 
-        }
-        
+        .task-attachments { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
         .attachment-item {
-            padding: 8px 14px;
-            background: var(--bg-color);
-            border-radius: 8px;
-            font-size: 13px;
-            color: var(--primary-color);
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: all 0.2s;
-            min-height: 44px;
-            display: flex;
-            align-items: center;
-            touch-action: manipulation;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
+            padding: 6px 12px; background: var(--bg-color); border-radius: 8px;
+            font-size: 13px; color: var(--primary-color); cursor: pointer;
+        }
+        .attachment-item:hover { background: #e3f2fd; }
+        
+        /* 模态框 */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: white; border-radius: 16px; padding: 24px;
+            width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto;
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+        }
+        .modal-title { font-size: 20px; font-weight: 600; }
+        .close-btn {
+            background: none; border: none; font-size: 28px;
+            cursor: pointer; color: var(--text-secondary);
         }
         
-        .attachment-item:hover {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-            transform: translateY(-1px);
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
+        .form-group input[type="text"],
+        .form-group input[type="date"],
+        .form-group textarea,
+        .form-group select {
+            width: 100%; padding: 10px 12px; border: 2px solid var(--border-color);
+            border-radius: 8px; font-size: 14px;
+        }
+        .form-group textarea { min-height: 80px; resize: vertical; }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus { outline: none; border-color: var(--primary-color); }
+        
+        .file-upload {
+            border: 2px dashed var(--border-color); border-radius: 8px; padding: 20px;
+            text-align: center; cursor: pointer;
+        }
+        .file-upload:hover { border-color: var(--primary-color); background: var(--bg-color); }
+        .file-upload input { display: none; }
+        
+        .uploaded-files { margin-top: 12px; }
+        .uploaded-file {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 12px; background: var(--bg-color); border-radius: 8px; margin-bottom: 8px;
+        }
+        .remove-file {
+            background: var(--danger-color); color: white; border: none;
+            width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
         }
         
-        .attachment-item:active {
-            transform: scale(0.98);
+        .empty-state {
+            text-align: center; padding: 60px 20px; color: var(--text-secondary);
         }
+        .empty-state-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.3; }
         
-        /* Floating Action Button */
-        .fab {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 56px;
-            height: 56px;
-            background: var(--primary-color);
-            border-radius: 50%;
+        /* 修复按钮点击不灵敏：toast 默认不拦截点击，显示时才允许点击 */
+        .toast {
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); color: white; padding: 12px 24px;
+            border-radius: 24px; font-size: 14px; z-index: 3000; opacity: 0;
+            pointer-events: none; /* 关键：默认不拦截点击 */
+        }
+        .toast.show { opacity: 1; pointer-events: auto; } /* 仅显示时可点击/可关闭 */
+        
+        /* 预览基础样式 */
+        .preview-iframe {
+            width: 100%;
+            height: 70vh;
             border: none;
-            color: white;
-            font-size: 28px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            z-index: 1000;
-            touch-action: manipulation;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .fab:hover { 
-            transform: scale(1.1); 
-        }
-        
-        .fab:active {
-            transform: scale(0.95);
-        }
-        
-        /* Footer */
-        .footer {
-            text-align: center;
-            padding: 20px;
-            color: var(--text-secondary);
-            font-size: 12px;
-            background: var(--bg-color);
-        }
-        
-        /* Attachment Viewer Modal */
-        .attachment-viewer-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: calc(var(--vh, 1vh) * 100);
-            background: rgba(0, 0, 0, 0.95);
-            z-index: 10000;
-            display: none;
-            flex-direction: column;
-            pointer-events: none;
-        }
-        
-        .attachment-viewer-modal.active {
-            display: flex;
-            pointer-events: auto;
-        }
-        
-        .viewer-toolbar {
-            background: rgba(0, 0, 0, 0.9);
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            flex-shrink: 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            pointer-events: auto;
-        }
-        
-        .viewer-title {
-            flex: 1;
-            color: white;
-            font-size: 14px;
-            font-weight: 500;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            max-width: 200px;
-        }
-        
-        .viewer-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        
-        .viewer-btn {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 10px 16px;
             border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s;
-            min-height: 44px;
-            min-width: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            touch-action: manipulation;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
         }
-        
-        .viewer-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-1px);
-        }
-        
-        .viewer-btn:active {
-            transform: scale(0.95);
-        }
-        
-        .viewer-btn-close {
-            background: var(--danger-color);
-            border-color: var(--danger-color);
-        }
-        
-        .viewer-btn-primary {
-            background: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-        
-        .viewer-content {
-            flex: 1;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            pointer-events: auto;
-        }
-        
-        .viewer-image-container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            touch-action: none;
-            cursor: grab;
-        }
-        
-        .viewer-image-container.grabbing {
-            cursor: grabbing;
-        }
-        
-        .viewer-image {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            transform-origin: center center;
-            transition: transform 0.1s ease-out;
-            pointer-events: none;
-            user-select: none;
-        }
-        
-        .viewer-iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: white;
-        }
-        
-        .viewer-fallback {
-            color: white;
+        .preview-fallback {
             text-align: center;
-            padding: 40px 20px;
-            max-width: 500px;
+            padding: 40px;
         }
-        
-        .viewer-fallback h3 {
-            font-size: 20px;
+        .preview-fallback-icon {
+            font-size: 48px;
             margin-bottom: 16px;
         }
-        
-        .viewer-fallback p {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 24px;
-        }
-        
-        .viewer-fallback-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            align-items: center;
-        }
-        
-        .viewer-loading {
+        .download-btn {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 10px 20px;
+            background: var(--primary-color);
             color: white;
-            text-align: center;
-            padding: 40px 20px;
-        }
-        
-        .viewer-loading-spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid rgba(255, 255, 255, 0.2);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* iOS PDF Object Fallback */
-        .pdf-object-container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .pdf-object {
-            width: 100%;
-            flex: 1;
             border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
         }
-        
-        .pdf-fallback-message {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            padding: 20px;
-            text-align: center;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        .download-btn:hover { background: #357ABD; }
+
+        /* 预览工具栏与全屏（新增） */
+        .preview-toolbar{
+            display:flex; gap:8px; justify-content:flex-end; align-items:center;
+            margin:8px 0; position: sticky; top:0; background:#fff; z-index:5;
+            padding:8px 0; border-bottom:1px solid var(--border-color);
         }
+        .tool-btn{
+            padding:6px 10px; border:1px solid var(--border-color); background:#fff;
+            border-radius:6px; cursor:pointer; font-size:13px; color:var(--text-primary);
+        }
+        .tool-btn.primary{ background:var(--primary-color); color:#fff; border-color:var(--primary-color); }
+
+        .image-wrap{
+            width:100%; height:calc(70vh - 50px); overflow:hidden; position:relative;
+            background:#00000008; border-radius:8px;
+        }
+        .image-wrap img{
+            max-width:100%; max-height:100%; transform-origin:center center;
+            user-select:none; -webkit-user-drag:none; touch-action:none;
+            display:block; margin:0 auto;
+        }
+
+        .modal.fullscreen .modal-content{
+            width:100vw; height:100vh; max-width:none; max-height:none;
+            border-radius:0; padding:12px;
+        }
+        .modal.fullscreen .preview-iframe{ height:calc(100vh - 100px); }
+        body.no-scroll{ overflow:hidden; }
         
-        /* Responsive adjustments */
-        @media (max-width: 600px) {
-            .viewer-title {
-                max-width: 120px;
-                font-size: 12px;
-            }
-            
-            .viewer-btn {
-                padding: 8px 12px;
-                font-size: 12px;
-                min-height: 44px;
-                min-width: 44px;
-            }
-            
-            .viewer-actions {
-                gap: 6px;
-            }
-            
-            .stats-panel {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        @media (max-width: 480px) {
+            .stats-panel { grid-template-columns: repeat(2, 1fr); }
+            .stat-card:last-child { grid-column: 1 / -1; }
+            .preview-iframe { height: 50vh; }
+            .image-wrap{ height:calc(50vh - 40px); }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <div class="header-title">家庭任务助手</div>
-            <div class="role-badge">用户</div>
-        </div>
-        
-        <!-- Stats Panel -->
-        <div class="stats-panel">
-            <div class="stat-card">
-                <div class="stat-value">5</div>
-                <div class="stat-label">待办任务</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">3</div>
-                <div class="stat-label">进行中</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">12</div>
-                <div class="stat-label">已完成</div>
-            </div>
-        </div>
-        
-        <!-- Task List -->
-        <div class="task-list">
-            <div class="task-section-title">今日任务</div>
+    <!-- 登录页面 -->
+    <div id="loginPage">
+        <div class="login-card">
+            <h1 class="login-title">👨‍👧 家庭任务助手</h1>
+            <p class="login-subtitle">让任务管理更简单</p>
             
-            <div class="task-card">
-                <div class="task-header">
-                    <div class="task-content">
-                        <div class="task-title">查看架构文档</div>
-                        <div class="task-description">审阅 Flink 架构图并提供反馈</div>
-                        <div class="task-attachments">
-                            <div class="attachment-item" 
-                                 data-url="https://example.com/flink_architecture_diagram.png" 
-                                 data-type="image/png" 
-                                 data-name="flink_architecture_diagram.png">
-                                📷 架构图.png
-                            </div>
-                            <div class="attachment-item" 
-                                 data-url="https://example.com/architecture_doc.pdf" 
-                                 data-type="application/pdf" 
-                                 data-name="architecture_doc.pdf">
-                                📄 文档.pdf
-                            </div>
-                            <div class="attachment-item" 
-                                 data-url="https://example.com/requirements.docx" 
-                                 data-type="application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
-                                 data-name="requirements.docx">
-                                📝 需求.docx
-                            </div>
-                        </div>
-                    </div>
+            <div id="loginForm">
+                <div class="input-group">
+                    <label>家庭邀请码</label>
+                    <input type="text" id="inviteCodeInput" placeholder="输入6位邀请码" maxlength="6">
                 </div>
+                <button class="btn btn-primary" onclick="loginWithCode()">登录</button>
+                <div class="divider">或</div>
+                <button class="btn btn-secondary" onclick="createFamily()">创建新家庭</button>
             </div>
-            
-            <div class="task-card">
-                <div class="task-header">
-                    <div class="task-content">
-                        <div class="task-title">准备周会材料</div>
-                        <div class="task-description">整理本周工作总结和下周计划</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="task-card">
-                <div class="task-header">
-                    <div class="task-content">
-                        <div class="task-title">代码审查</div>
-                        <div class="task-description">审查团队成员提交的代码变更</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Footer -->
-        <div class="footer">
-            <p>最后更新：2025-12-15</p>
-            <div class="kuse-branding" style="margin-top: 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: color 0.2s;" onclick="window.open('https://kuse.ai', '_blank', 'noopener,noreferrer')">
-                <span style="font-size: 12px; color: var(--text-secondary);">made with</span>
-                <svg viewBox="0,0,160,44" xmlns="http://www.w3.org/2000/svg" style="height: 1.2em; width: auto;"><path d="m.01,20.65C-.43,8.25,9.3-2.03,22.04.34,34.78,2.72,43.29,8.32,43.29,22.9s-8.66,19.01-22.03,20.3C7.9,44.5.46,33.05.01,20.65z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="m146.76,7.94c8.07,0,13.24,6.15,13.24,14.58v1.39h-20.75c.45,4.05,3.51,7.37,8.57,7.37,2.62,0,5.73-1.05,7.62-2.94l2.67,3.83c-2.67,2.55-6.62,3.88-10.9,3.88-8.07,0-14.08-5.6-14.08-14.08,0-7.76,5.67-14.02,13.63-14.02zm0,4.77c-5.01,0-7.29,3.83-7.57,7.1h15.13c-.11-3.16-2.28-7.1-7.57-7.1z" fill="currentColor"/><path d="m86.64,24.49c0,4.15,2.39,6.84,6.84,6.84,4.4,0,6.84-2.69,6.84-6.84V8.55h5.37v16.33c0,6.7-4.06,11.14-12.21,11.14-8.21,0-12.21-4.5-12.21-11.09V8.55h5.37v15.94zm32.99-16.55c4.49,0,8.06,1.47,10.6,3.86l-2.59,3.81c-2.05-2-5.28-3.08-8.06-3.08-2.88,0-4.84,1.37-4.84,3.32,0,1.91,2.64,2.54,5.81,3.27,4.59,1.08,10.26,2.4,10.26,8.46,0,4.94-3.76,8.41-11.14,8.41-4.98,0-8.94-1.76-11.24-4.11l2.54-4.11c1.86,1.91,5.18,3.67,8.84,3.67,3.91,0,5.57-1.66,5.57-3.62,0-2.3-2.88-2.98-6.21-3.76-4.54-1.08-9.87-2.3-9.87-8.06,0-4.5,4.2-8.06,10.31-8.06zM60.79,20.82,71.44,8.55h6.5L66.46,21.26,78.82,35.44h-6.5l-9.28-11.1-2.25,2.49v8.6h-5.33V8.55h5.33v12.27z" fill="currentColor"/></svg>
-            </div>
-        </div>
-        
-        <!-- Floating Action Button -->
-        <button class="fab" title="添加新任务">+</button>
-    </div>
-    
-    <!-- Attachment Viewer Modal -->
-    <div class="attachment-viewer-modal" id="attachmentViewer">
-        <div class="viewer-toolbar">
-            <div class="viewer-title" id="viewerTitle">附件预览</div>
-            <div class="viewer-actions">
-                <button class="viewer-btn viewer-btn-close" id="btnClose" title="关闭">✕</button>
-                <button class="viewer-btn viewer-btn-primary" id="btnDownload" title="下载">⬇</button>
-                <button class="viewer-btn" id="btnNewWindow" title="新窗口打开">⧉</button>
-                <button class="viewer-btn" id="btnZoomIn" title="放大">+</button>
-                <button class="viewer-btn" id="btnZoomOut" title="缩小">−</button>
-                <button class="viewer-btn" id="btnRotate" title="旋转">↻</button>
-                <button class="viewer-btn" id="btnFullscreen" title="全屏">⛶</button>
-            </div>
-        </div>
-        <div class="viewer-content" id="viewerContent">
-            <div class="viewer-loading" id="viewerLoading">
-                <div class="viewer-loading-spinner"></div>
-                <p>加载中...</p>
+
+            <div id="roleSelection" class="hidden">
+                <p style="text-align: center; margin-bottom: 20px; color: var(--text-secondary);">请选择你的角色</p>
+                <button class="btn btn-primary" onclick="selectRole('parent')">👨‍💼 家长模式</button>
+                <button class="btn btn-secondary" onclick="selectRole('child')">👧 孩子模式</button>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.kuse.ai/sdk.prd.js"></script>
+    <!-- 主应用界面 -->
+    <div id="mainApp" class="hidden">
+        <div class="container">
+            <!-- 头部导航 -->
+            <div class="header">
+                <div>
+                    <div class="header-title">家庭任务</div>
+                    <div class="role-badge" id="roleBadge"></div>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn" onclick="switchRole()" title="切换角色">🔄</button>
+                    <button class="icon-btn" onclick="logout()" title="退出">🚪</button>
+                </div>
+            </div>
+
+            <!-- 统计面板 -->
+            <div id="statsPanel" class="stats-panel hidden">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalTasks">0</div>
+                    <div class="stat-label">总任务</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="completedTasks">0</div>
+                    <div class="stat-label">已完成</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="completionRate">0%</div>
+                    <div class="stat-label">完成率</div>
+                </div>
+            </div>
+
+            <!-- 任务列表 -->
+            <div class="task-list" id="taskList">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📝</div>
+                    <div>加载中...</div>
+                </div>
+            </div>
+
+            <!-- 创建任务浮动按钮 -->
+            <button id="createTaskBtn" class="fab hidden" onclick="openCreateTaskModal()">+</button>
+        </div>
+    </div>
+
+    <!-- 创建任务模态框 -->
+    <div id="createTaskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">创建新任务</h2>
+                <button class="close-btn" onclick="closeCreateTaskModal()">&times;</button>
+            </div>
+            
+            <form id="taskForm" onsubmit="createTask(event)">
+                <div class="form-group">
+                    <label>任务标题 *</label>
+                    <input type="text" id="taskTitle" required placeholder="例如:完成数学作业">
+                </div>
+
+                <div class="form-group">
+                    <label>任务描述</label>
+                    <textarea id="taskDescription" placeholder="详细说明任务要求..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>截止日期</label>
+                    <input type="date" id="taskDueDate">
+                </div>
+
+                <div class="form-group">
+                    <label>优先级</label>
+                    <select id="taskPriority">
+                        <option value="low">低</option>
+                        <option value="medium" selected>中</option>
+                        <option value="high">高</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>标签(用逗号分隔)</label>
+                    <input type="text" id="taskTags" placeholder="例如:作业,数学">
+                </div>
+
+                <div class="form-group">
+                    <label>上传附件</label>
+                    <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                        <div>📎 点击上传文件</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">
+                            支持PDF、DOCX、图片、音频、视频
+                        </div>
+                        <input type="file" id="fileInput" multiple
+                          accept=".pdf,.docx,.doc,.jpg,.jpeg,.png,.gif,.mp3,.mp4,.wav,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                          onchange="handleFileSelect(event)">
+                    </div>
+                    <div id="uploadedFilesList" class="uploaded-files"></div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">创建任务</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 附件预览模态框 -->
+    <div id="attachmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="attachmentTitle">查看附件</h2>
+                <div>
+                    <!-- 新增全屏按钮 -->
+                    <button class="tool-btn" id="fullscreenBtn" onclick="toggleAttachmentFullscreen()" title="全屏/退出全屏">⛶</button>
+                    <button class="close-btn" onclick="closeAttachmentModal()">&times;</button>
+                </div>
+            </div>
+            <div id="attachmentContent"></div>
+        </div>
+    </div>
+
+    <!-- 提示消息 -->
+    <div id="toast" class="toast"></div>
+
+    <!-- LeanCloud SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.15.2/dist/av-min.js"></script>
+    
     <script>
-        // Fix iOS 100vh issue
-        function setVhVariable() {
-            const vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty(`--vh`, `${vh}px`);
-        }
-        
-        setVhVariable();
-        window.addEventListener(`resize`, setVhVariable);
-        window.addEventListener(`orientationchange`, setVhVariable);
-        
-        // Utility: Convert HTTP to HTTPS
-        function toHttps(url) {
-            if (!url) return url;
-            return url.replace(/^http:\/\//i, `https://`);
-        }
-        
-        // LeanCloud Safe Initialization
-        function initLeanCloud() {
-            if (typeof window.LEANCLOUD_CONFIG !== `undefined` && window.LEANCLOUD_CONFIG && typeof AV !== `undefined`) {
-                try {
-                    AV.init({
-                        appId: window.LEANCLOUD_CONFIG.appId,
-                        appKey: window.LEANCLOUD_CONFIG.appKey,
-                        serverURL: window.LEANCLOUD_CONFIG.serverURL
-                    });
-                    console.log(`LeanCloud initialized successfully`);
-                } catch (error) {
-                    console.warn(`LeanCloud initialization failed:`, error);
-                }
-            } else {
-                console.log(`LeanCloud not configured or AV library not loaded`);
+        // ========== LeanCloud 配置 ==========
+        const LEANCLOUD_APP_ID = `YOUR_APP_ID`;
+        const LEANCLOUD_APP_KEY = `YOUR_APP_KEY`;
+        const LEANCLOUD_SERVER_URL = `https://YOUR_SERVER_URL.lc-cn-n1-shared.com`;
+
+        AV.init({
+            appId: '63f8haa3tIFFuiTc2HeDuEyU-gzGzoHsz',
+            appKey: 'SXeVLTnReJKeptXMnlR98Z8J',
+            serverURL: 'https://63f8haa3.lc-cn-n1-shared.com'
+        });
+
+        // ========== 全局变量 ==========
+        let currentUser = null;
+        let currentRole = null;
+        let currentFamily = null;
+        let tasks = [];
+        let uploadedFiles = [];
+
+        // ========== 家庭管理功能 ==========
+        async function createFamily() {
+            try {
+                showToast(`正在创建家庭...`);
+                const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+                const Family = AV.Object.extend(`Family`);
+                const family = new Family();
+                family.set(`inviteCode`, inviteCode);
+                family.set(`createdAt`, new Date());
+                await family.save();
+                
+                localStorage.setItem(`familyId`, family.id);
+                localStorage.setItem(`inviteCode`, inviteCode);
+                
+                alert(`家庭创建成功!\n\n邀请码:${inviteCode}\n\n请将此邀请码分享给孩子`);
+                currentFamily = family;
+                showRoleSelection();
+            } catch (error) {
+                console.error(`创建家庭失败:`, error);
+                showToast(`创建失败,请重试`);
             }
         }
-        
-        // Download File Function
-        async function downloadFile(url, filename) {
-            const httpsUrl = toHttps(url);
-            const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-            const isAndroid = /Android/i.test(navigator.userAgent);
-            
-            // Mobile: prefer new window approach
-            if (isIOS || isAndroid) {
-                const newWindow = window.open(httpsUrl, `_blank`, `noopener,noreferrer`);
-                if (newWindow) newWindow.opener = null;
+
+        async function loginWithCode() {
+            const code = document.getElementById(`inviteCodeInput`).value.trim().toUpperCase();
+            if (!code || code.length !== 6) {
+                showToast(`请输入6位邀请码`);
                 return;
             }
-            
-            // Desktop: try fetch blob
             try {
-                const response = await fetch(httpsUrl);
-                if (!response.ok) throw new Error(`Network response was not ok`);
-                
-                const blob = await response.blob();
-                const blobUrl = URL.createObjectURL(blob);
-                
-                const a = document.createElement(`a`);
-                a.href = blobUrl;
-                a.download = filename || `download`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                
-                setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+                showToast(`正在验证邀请码...`);
+                const query = new AV.Query(`Family`);
+                query.equalTo(`inviteCode`, code);
+                const family = await query.first();
+                if (!family) {
+                    showToast(`邀请码无效`);
+                    return;
+                }
+                localStorage.setItem(`familyId`, family.id);
+                localStorage.setItem(`inviteCode`, code);
+                currentFamily = family;
+                showRoleSelection();
             } catch (error) {
-                console.warn(`Fetch download failed, opening in new window:`, error);
-                const newWindow = window.open(httpsUrl, `_blank`, `noopener,noreferrer`);
-                if (newWindow) newWindow.opener = null;
+                console.error(`登录失败:`, error);
+                showToast(`登录失败,请重试`);
             }
         }
-        
-        // Attachment Viewer
-        class AttachmentViewer {
-            constructor() {
-                this.modal = document.getElementById(`attachmentViewer`);
-                this.viewerTitle = document.getElementById(`viewerTitle`);
-                this.viewerContent = document.getElementById(`viewerContent`);
-                this.viewerLoading = document.getElementById(`viewerLoading`);
-                
-                this.btnClose = document.getElementById(`btnClose`);
-                this.btnDownload = document.getElementById(`btnDownload`);
-                this.btnNewWindow = document.getElementById(`btnNewWindow`);
-                this.btnZoomIn = document.getElementById(`btnZoomIn`);
-                this.btnZoomOut = document.getElementById(`btnZoomOut`);
-                this.btnRotate = document.getElementById(`btnRotate`);
-                this.btnFullscreen = document.getElementById(`btnFullscreen`);
-                
-                this.currentUrl = null;
-                this.currentType = null;
-                this.currentName = null;
-                
-                this.scale = 1;
-                this.rotation = 0;
-                this.translateX = 0;
-                this.translateY = 0;
-                
-                this.isDragging = false;
-                this.startX = 0;
-                this.startY = 0;
-                this.lastTapTime = 0;
-                this.touchStartDistance = 0;
-                this.touchStartScale = 1;
-                this.touchStartMidpoint = { x: 0, y: 0 };
-                
-                this.initEventListeners();
+
+        function showRoleSelection() {
+            document.getElementById(`loginForm`).classList.add(`hidden`);
+            document.getElementById(`roleSelection`).classList.remove(`hidden`);
+        }
+
+        function selectRole(role) {
+            currentRole = role;
+            localStorage.setItem(`userRole`, role);
+            document.getElementById(`loginPage`).classList.add(`hidden`);
+            document.getElementById(`mainApp`).classList.remove(`hidden`);
+            initApp();
+        }
+
+        function switchRole() {
+            const newRole = currentRole === `parent` ? `child` : `parent`;
+            selectRole(newRole);
+        }
+
+        function logout() {
+            if (confirm(`确定要退出吗?`)) {
+                localStorage.clear();
+                location.reload();
             }
-            
-            initEventListeners() {
-                // Close button
-                this.btnClose.addEventListener(`click`, () => this.close());
-                
-                // Download button
-                this.btnDownload.addEventListener(`click`, () => {
-                    if (this.currentUrl && this.currentName) {
-                        downloadFile(this.currentUrl, this.currentName);
-                    }
-                });
-                
-                // New window button
-                this.btnNewWindow.addEventListener(`click`, () => {
-                    if (this.currentUrl) {
-                        const newWindow = window.open(toHttps(this.currentUrl), `_blank`, `noopener,noreferrer`);
-                        if (newWindow) newWindow.opener = null;
-                    }
-                });
-                
-                // Zoom buttons
-                this.btnZoomIn.addEventListener(`click`, () => this.zoomIn());
-                this.btnZoomOut.addEventListener(`click`, () => this.zoomOut());
-                
-                // Rotate button
-                this.btnRotate.addEventListener(`click`, () => this.rotate());
-                
-                // Fullscreen button
-                this.btnFullscreen.addEventListener(`click`, () => this.toggleFullscreen());
-                
-                // Backdrop click to close
-                this.modal.addEventListener(`click`, (e) => {
-                    if (e.target === this.modal) {
-                        this.close();
-                    }
-                });
-                
-                // ESC key to close
-                document.addEventListener(`keydown`, (e) => {
-                    if (e.key === `Escape` && this.modal.classList.contains(`active`)) {
-                        this.close();
-                    }
-                });
+        }
+
+        // ========== 应用初始化 ==========
+        async function initApp() {
+            const roleBadge = document.getElementById(`roleBadge`);
+            roleBadge.textContent = currentRole === `parent` ? `👨‍💼 家长` : `👧 孩子`;
+            if (currentRole === `parent`) {
+                document.getElementById(`statsPanel`).classList.remove(`hidden`);
+                document.getElementById(`createTaskBtn`).classList.remove(`hidden`);
+            } else {
+                document.getElementById(`statsPanel`).classList.add(`hidden`);
+                document.getElementById(`createTaskBtn`).classList.add(`hidden`);
             }
-            
-            open(url, type, name) {
-                this.currentUrl = toHttps(url);
-                this.currentType = type;
-                this.currentName = name;
+            await loadTasks();
+            setupRealtimeSync();
+        }
+
+        // ========== 任务管理功能 ==========
+        async function loadTasks() {
+            try {
+                const familyId = localStorage.getItem(`familyId`);
+                const query = new AV.Query(`Task`);
+                query.equalTo(`familyId`, familyId);
+                query.descending(`createdAt`);
+                const results = await query.find();
                 
-                this.viewerTitle.textContent = name || `附件预览`;
-                this.modal.classList.add(`active`);
-                document.body.style.overflow = `hidden`;
+                tasks = results.map(obj => ({
+                    id: obj.id,
+                    ...obj.toJSON()
+                }));
                 
-                this.resetTransform();
-                this.showLoading();
-                
-                if (type.startsWith(`image/`)) {
-                    this.loadImage(this.currentUrl);
-                } else if (type === `application/pdf`) {
-                    this.loadPdf(this.currentUrl);
-                } else if (type.includes(`word`) || type.includes(`document`)) {
-                    this.loadDocument(this.currentUrl);
-                } else {
-                    this.showFallback(`不支持的文件类型`);
-                }
+                renderTasks();
+                updateStats();
+            } catch (error) {
+                console.error(`加载任务失败:`, error);
+                showToast(`加载失败`);
             }
-            
-            close() {
-                this.modal.classList.remove(`active`);
-                document.body.style.overflow = ``;
-                this.viewerContent.innerHTML = ``;
-                this.currentUrl = null;
-                this.currentType = null;
-                this.currentName = null;
-            }
-            
-            showLoading() {
-                this.viewerContent.innerHTML = `
-                    <div class="viewer-loading">
-                        <div class="viewer-loading-spinner"></div>
-                        <p>加载中...</p>
+        }
+
+        function renderTasks() {
+            const taskList = document.getElementById(`taskList`);
+            if (tasks.length === 0) {
+                taskList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <div>还没有任务</div>
+                        ${currentRole === `parent` ? `<div style="margin-top: 8px; font-size: 14px;">点击右下角 + 创建任务</div>` : ``}
                     </div>
                 `;
+                return;
             }
-            
-            showFallback(message) {
-                this.viewerContent.innerHTML = `
-                    <div class="viewer-fallback">
-                        <h3>${message}</h3>
-                        <p>您可以下载文件或在新窗口中打开</p>
-                        <div class="viewer-fallback-actions">
-                            <button class="viewer-btn viewer-btn-primary" onclick="attachmentViewer.downloadCurrent()">下载文件</button>
-                            <button class="viewer-btn" onclick="attachmentViewer.openInNewWindow()">在新窗口打开</button>
-                        </div>
-                    </div>
-                `;
+            const pending = tasks.filter(t => !t.completed);
+            const completed = tasks.filter(t => t.completed);
+            let html = ``;
+            if (pending.length > 0) {
+                html += `<div class="task-section-title">待完成</div>`;
+                pending.forEach(task => { html += renderTaskCard(task); });
             }
-            
-            loadImage(url) {
-                const container = document.createElement(`div`);
-                container.className = `viewer-image-container`;
-                
-                const img = document.createElement(`img`);
-                img.className = `viewer-image`;
-                img.src = url;
-                
-                img.onload = () => {
-                    this.viewerContent.innerHTML = ``;
-                    container.appendChild(img);
-                    this.viewerContent.appendChild(container);
-                    this.initImageInteractions(container, img);
-                };
-                
-                img.onerror = () => {
-                    this.showFallback(`图片加载失败`);
-                };
+            if (completed.length > 0) {
+                html += `<div class="task-section-title">已完成</div>`;
+                completed.forEach(task => { html += renderTaskCard(task); });
             }
-            
-            initImageInteractions(container, img) {
-                // Double-tap to zoom
-                container.addEventListener(`click`, (e) => {
-                    const now = Date.now();
-                    const timeSinceLastTap = now - this.lastTapTime;
-                    
-                    if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
-                        // Double tap detected
-                        this.scale = this.scale === 1 ? 2 : 1;
-                        this.translateX = 0;
-                        this.translateY = 0;
-                        this.updateImageTransform(img);
-                    }
-                    
-                    this.lastTapTime = now;
-                });
-                
-                // Mouse drag
-                container.addEventListener(`mousedown`, (e) => {
-                    if (this.scale > 1) {
-                        this.isDragging = true;
-                        this.startX = e.clientX - this.translateX;
-                        this.startY = e.clientY - this.translateY;
-                        container.classList.add(`grabbing`);
-                    }
-                });
-                
-                document.addEventListener(`mousemove`, (e) => {
-                    if (this.isDragging) {
-                        this.translateX = e.clientX - this.startX;
-                        this.translateY = e.clientY - this.startY;
-                        this.updateImageTransform(img);
-                    }
-                });
-                
-                document.addEventListener(`mouseup`, () => {
-                    this.isDragging = false;
-                    container.classList.remove(`grabbing`);
-                });
-                
-                // Touch drag (single finger)
-                container.addEventListener(`touchstart`, (e) => {
-                    if (e.touches.length === 1 && this.scale > 1) {
-                        this.isDragging = true;
-                        this.startX = e.touches[0].clientX - this.translateX;
-                        this.startY = e.touches[0].clientY - this.translateY;
-                    } else if (e.touches.length === 2) {
-                        // Pinch zoom start
-                        this.isDragging = false;
-                        const touch1 = e.touches[0];
-                        const touch2 = e.touches[1];
-                        this.touchStartDistance = this.getDistance(touch1, touch2);
-                        this.touchStartScale = this.scale;
-                        this.touchStartMidpoint = this.getMidpoint(touch1, touch2);
-                    }
-                });
-                
-                container.addEventListener(`touchmove`, (e) => {
-                    if (e.touches.length === 1 && this.isDragging) {
-                        e.preventDefault();
-                        this.translateX = e.touches[0].clientX - this.startX;
-                        this.translateY = e.touches[0].clientY - this.startY;
-                        this.updateImageTransform(img);
-                    } else if (e.touches.length === 2) {
-                        e.preventDefault();
-                        const touch1 = e.touches[0];
-                        const touch2 = e.touches[1];
-                        const currentDistance = this.getDistance(touch1, touch2);
-                        const scaleChange = currentDistance / this.touchStartDistance;
-                        this.scale = Math.max(0.5, Math.min(5, this.touchStartScale * scaleChange));
-                        this.updateImageTransform(img);
-                    }
-                });
-                
-                container.addEventListener(`touchend`, () => {
-                    this.isDragging = false;
-                });
-                
-                // Mouse wheel zoom
-                container.addEventListener(`wheel`, (e) => {
-                    e.preventDefault();
-                    const delta = e.deltaY > 0 ? 0.9 : 1.1;
-                    this.scale = Math.max(0.5, Math.min(5, this.scale * delta));
-                    this.updateImageTransform(img);
-                });
-            }
-            
-            getDistance(touch1, touch2) {
-                const dx = touch2.clientX - touch1.clientX;
-                const dy = touch2.clientY - touch1.clientY;
-                return Math.sqrt(dx * dx + dy * dy);
-            }
-            
-            getMidpoint(touch1, touch2) {
-                return {
-                    x: (touch1.clientX + touch2.clientX) / 2,
-                    y: (touch1.clientY + touch2.clientY) / 2
-                };
-            }
-            
-            updateImageTransform(img) {
-                img.style.transform = `translate(${this.translateX}px, ${this.translateY}px) scale(${this.scale}) rotate(${this.rotation}deg)`;
-            }
-            
-            zoomIn() {
-                this.scale = Math.min(5, this.scale + 0.25);
-                const img = this.viewerContent.querySelector(`.viewer-image`);
-                if (img) this.updateImageTransform(img);
-            }
-            
-            zoomOut() {
-                this.scale = Math.max(0.5, this.scale - 0.25);
-                const img = this.viewerContent.querySelector(`.viewer-image`);
-                if (img) this.updateImageTransform(img);
-            }
-            
-            rotate() {
-                this.rotation = (this.rotation + 90) % 360;
-                const img = this.viewerContent.querySelector(`.viewer-image`);
-                if (img) this.updateImageTransform(img);
-            }
-            
-            resetTransform() {
-                this.scale = 1;
-                this.rotation = 0;
-                this.translateX = 0;
-                this.translateY = 0;
-            }
-            
-            loadPdf(url) {
-                const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-                const isMobileSafari = isIOS && /Safari/i.test(navigator.userAgent) && !/CriOS|FxiOS/i.test(navigator.userAgent);
-                
-                // Try self-hosted pdf.js first (not available in this workspace)
-                const selfHostedViewer = `/pdfjs/web/viewer.html?file=${encodeURIComponent(url)}`;
-                const mozillaViewer = `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(url)}`;
-                
-                // For iOS Mobile Safari, use object/embed with fallback
-                if (isMobileSafari) {
-                    this.viewerContent.innerHTML = `
-                        <div class="pdf-object-container">
-                            <object class="pdf-object" type="application/pdf" data="${url}">
-                                <div class="pdf-fallback-message">
-                                    <p>您的浏览器可能无法直接预览 PDF</p>
-                                    <button class="viewer-btn viewer-btn-primary" onclick="attachmentViewer.openInNewWindow()" style="margin-top: 12px;">在新窗口打开 PDF</button>
+            taskList.innerHTML = html;
+        }
+
+        function renderTaskCard(task) {
+            const dueDate = task.dueDate ? new Date(task.dueDate) : null;
+            const isOverdue = dueDate && dueDate < new Date() && !task.completed;
+            return `
+                <div class="task-card priority-${task.priority} ${task.completed ? `completed` : ``}">
+                    <div class="task-header">
+                        <div class="task-checkbox ${task.completed ? `checked` : ``}" onclick="toggleTask('${task.id}')"></div>
+                        <div class="task-content">
+                            <div class="task-title ${task.completed ? `completed` : ``}">
+                                ${escapeHtml(task.title)}
+                            </div>
+                            ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ``}
+                            <div class="task-meta">
+                                ${task.tags && task.tags.length > 0 ? task.tags.map(tag => 
+                                    `<span class="task-tag">#${escapeHtml(tag)}</span>`
+                                ).join(``) : ``}
+                                ${dueDate ? `
+                                    <div class="task-due-date ${isOverdue ? `overdue` : ``}">
+                                        📅 ${formatDate(dueDate)}
+                                    </div>
+                                ` : ``}
+                            </div>
+                            ${task.attachments && task.attachments.length > 0 ? `
+                                <div class="task-attachments">
+                                    ${task.attachments.map((att, idx) => `
+                                        <div class="attachment-item" onclick="viewAttachment('${task.id}', ${idx})">
+                                            ${getFileIcon(att.type, att.name)} ${escapeHtml(att.name)}
+                                        </div>
+                                    `).join(``)}
                                 </div>
-                            </object>
+                            ` : ``}
                         </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function toggleTask(taskId) {
+            try {
+                const task = tasks.find(t => t.id === taskId);
+                if (!task) return;
+                const Task = AV.Object.createWithoutData(`Task`, taskId);
+                Task.set(`completed`, !task.completed);
+                Task.set(`completedAt`, !task.completed ? new Date() : null);
+                await Task.save();
+                
+                task.completed = !task.completed;
+                task.completedAt = task.completed ? new Date() : null;
+                
+                renderTasks();
+                updateStats();
+                showToast(task.completed ? `✓ 任务已完成` : `任务标记为未完成`);
+            } catch (error) {
+                console.error(`更新任务失败:`, error);
+                showToast(`操作失败`);
+            }
+        }
+
+        function updateStats() {
+            if (currentRole !== `parent`) return;
+            const total = tasks.length;
+            const completed = tasks.filter(t => t.completed).length;
+            const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+            document.getElementById(`totalTasks`).textContent = total;
+            document.getElementById(`completedTasks`).textContent = completed;
+            document.getElementById(`completionRate`).textContent = rate + `%`;
+        }
+
+        // ========== 创建任务功能 ==========
+        function openCreateTaskModal() {
+            document.getElementById(`createTaskModal`).classList.add(`active`);
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById(`taskDueDate`).value = tomorrow.toISOString().split(`T`)[0];
+        }
+
+        function closeCreateTaskModal() {
+            document.getElementById(`createTaskModal`).classList.remove(`active`);
+            document.getElementById(`taskForm`).reset();
+            uploadedFiles = [];
+            document.getElementById(`uploadedFilesList`).innerHTML = ``;
+        }
+
+        async function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            for (const file of files) {
+                if (file.size > 10 * 1024 * 1024) {
+                    showToast(`${file.name} 超过10MB限制`);
+                    continue;
+                }
+                try {
+                    showToast(`正在上传...`);
+                    const avFile = new AV.File(file.name, file);
+                    await avFile.save();
+                    const secureUrl = toHttps(avFile.url());
+                    uploadedFiles.push({ name: file.name, url: secureUrl, type: file.type });
+                    renderUploadedFiles();
+                    showToast(`${file.name} 上传成功`);
+                } catch (error) {
+                    console.error(`上传失败:`, error);
+                    showToast(`${file.name} 上传失败`);
+                }
+            }
+            event.target.value = ``;
+        }
+
+        function renderUploadedFiles() {
+            const list = document.getElementById(`uploadedFilesList`);
+            list.innerHTML = uploadedFiles.map((file, idx) => `
+                <div class="uploaded-file">
+                    <span>${getFileIcon(file.type, file.name)} ${escapeHtml(file.name)}</span>
+                    <button type="button" class="remove-file" onclick="removeFile(${idx})">&times;</button>
+                </div>
+            `).join(``);
+        }
+
+        function removeFile(index) {
+            uploadedFiles.splice(index, 1);
+            renderUploadedFiles();
+        }
+
+        async function createTask(event) {
+            event.preventDefault();
+            try {
+                showToast(`正在创建任务...`);
+                const title = document.getElementById(`taskTitle`).value.trim();
+                const description = document.getElementById(`taskDescription`).value.trim();
+                const dueDate = document.getElementById(`taskDueDate`).value;
+                const priority = document.getElementById(`taskPriority`).value;
+                const tagsInput = document.getElementById(`taskTags`).value.trim();
+                const tags = tagsInput ? tagsInput.split(`,`).map(t => t.trim()).filter(t => t) : [];
+                
+                const Task = AV.Object.extend(`Task`);
+                const task = new Task();
+                task.set(`familyId`, localStorage.getItem(`familyId`));
+                task.set(`title`, title);
+                task.set(`description`, description);
+                task.set(`dueDate`, dueDate ? new Date(dueDate) : null);
+                task.set(`priority`, priority);
+                task.set(`tags`, tags);
+                task.set(`attachments`, uploadedFiles);
+                task.set(`completed`, false);
+                task.set(`createdBy`, `parent`);
+                await task.save();
+                
+                showToast(`✓ 任务创建成功`);
+                closeCreateTaskModal();
+                await loadTasks();
+            } catch (error) {
+                console.error(`创建任务失败:`, error);
+                showToast(`创建失败,请重试`);
+            }
+        }
+
+        // ========== 附件预览功能（增强版） ==========
+        function viewAttachment(taskId, attachmentIndex) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task || !task.attachments || !task.attachments[attachmentIndex]) return;
+            const attachment = task.attachments[attachmentIndex];
+            const modal = document.getElementById(`attachmentModal`);
+            const title = document.getElementById(`attachmentTitle`);
+            const content = document.getElementById(`attachmentContent`);
+            title.textContent = attachment.name;
+            const safeUrl = toHttps(attachment.url);
+            content.innerHTML = ``;
+
+            // 图片预览：新增放大/缩小/复位与下载按钮
+            if (attachment.type.startsWith(`image/`)) {
+                content.innerHTML = `
+                  <div class="preview-toolbar">
+                    <button class="tool-btn" onclick="zoomImage(0.2)">放大+</button>
+                    <button class="tool-btn" onclick="zoomImage(-0.2)">缩小-</button>
+                    <button class="tool-btn" onclick="resetImageZoom()">复位</button>
+                    <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载</button>
+                  </div>
+                  <div class="image-wrap">
+                    <img id="previewImg" src="${safeUrl}" alt="${escapeHtml(attachment.name)}">
+                  </div>
+                `;
+                const imgEl = document.getElementById('previewImg');
+                setupImageZoom(imgEl);
+            }
+            else if (attachment.type.startsWith(`video/`)) {
+                content.innerHTML = `
+                  <div class="preview-toolbar">
+                    <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载视频</button>
+                  </div>
+                  <video controls src="${safeUrl}" class="preview-iframe"></video>
+                `;
+            }
+            else if (attachment.type.startsWith(`audio/`)) {
+                content.innerHTML = `
+                  <div class="preview-toolbar">
+                    <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载音频</button>
+                  </div>
+                  <audio controls src="${safeUrl}" style="width: 100%;"></audio>
+                `;
+            }
+            // PDF：iOS 优先用 pdf.js 渲染，其他平台保留原 viewer，并都提供下载/外部打开
+            else if (isPDF(attachment)) {
+                if (isIOS()) {
+                    content.innerHTML = `
+                      <div class="preview-toolbar">
+                        <button class="tool-btn" onclick="pdfZoom(0.2)">放大+</button>
+                        <button class="tool-btn" onclick="pdfZoom(-0.2)">缩小-</button>
+                        <button class="tool-btn" onclick="pdfZoomReset()">复位</button>
+                        <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载PDF</button>
+                      </div>
+                      <div id="pdfCanvasContainer" style="height:70vh; overflow:auto; background:#f9f9f9; border-radius:8px; padding:8px;"></div>
                     `;
+                    renderPdfWithPdfJs(safeUrl, 'pdfCanvasContainer');
                 } else {
-                    // Use Mozilla pdf.js viewer for other browsers
-                    const iframe = document.createElement(`iframe`);
-                    iframe.className = `viewer-iframe`;
-                    iframe.src = mozillaViewer;
-                    
-                    this.viewerContent.innerHTML = ``;
-                    this.viewerContent.appendChild(iframe);
-                    
-                    // Fallback if iframe fails to load
-                    setTimeout(() => {
-                        if (!iframe.contentWindow || iframe.contentWindow.length === 0) {
-                            this.showFallback(`PDF 加载失败`);
-                        }
-                    }, 5000);
+                    const viewerUrl = `https://mozilla.github.io/pdf.js/web/viewer.html?file=` + encodeURIComponent(safeUrl);
+                    content.innerHTML = `
+                      <div class="preview-toolbar">
+                        <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载PDF</button>
+                        <button class="tool-btn" onclick="openExternal('${safeUrl}')">新窗口打开</button>
+                      </div>
+                      <iframe src="${viewerUrl}" class="preview-iframe" allowfullscreen></iframe>
+                    `;
                 }
             }
-            
-            loadDocument(url) {
-                const officeViewerUrl = `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(url)}`;
-                const iframe = document.createElement(`iframe`);
-                iframe.className = `viewer-iframe`;
-                iframe.src = officeViewerUrl;
-                
-                this.viewerContent.innerHTML = ``;
-                this.viewerContent.appendChild(iframe);
-                
-                // 5 second timeout fallback
-                setTimeout(() => {
-                    if (!iframe.contentWindow || iframe.contentWindow.length === 0) {
-                        this.showFallback(`文档预览服务暂时不可用`);
-                    }
-                }, 5000);
+            // DOCX/DOC 预览：保持原逻辑，增加上方工具栏的下载按钮
+            else if (isDOCX(attachment) || isDOC(attachment) || attachment.name.toLowerCase().endsWith('.docx') || attachment.name.toLowerCase().endsWith('.doc')) {
+                const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=` + encodeURIComponent(safeUrl);
+                content.innerHTML = `
+                  <div class="preview-toolbar">
+                    <button class="tool-btn primary" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载文件</button>
+                  </div>
+                  <iframe id="docxPreviewFrame" src="${officeViewerUrl}" class="preview-iframe"
+                          onload="clearDocxTimeout()" onerror="showDocxFallback('${safeUrl}', '${escapeHtml(attachment.name)}')">
+                  </iframe>
+                  <div id="docxFallback" class="preview-fallback" style="display: none;">
+                    <div class="preview-fallback-icon">📄</div>
+                    <div>无法预览该Word文件</div>
+                    <button class="download-btn" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载文件</button>
+                  </div>
+                `;
+                window.docxPreviewTimeout = setTimeout(() => { showDocxFallback(safeUrl, attachment.name); }, 5000);
             }
-            
-            toggleFullscreen() {
-                if (!document.fullscreenElement) {
-                    this.modal.requestFullscreen().catch(err => {
-                        console.warn(`Fullscreen request failed:`, err);
-                    });
-                } else {
-                    document.exitFullscreen();
-                }
+            else {
+                content.innerHTML = `
+                  <div class="preview-fallback">
+                    <div class="preview-fallback-icon">📄</div>
+                    <div>无法预览此文件类型</div>
+                    <button class="download-btn" onclick="downloadFile('${safeUrl}', '${escapeHtml(attachment.name)}')">下载文件</button>
+                  </div>
+                `;
             }
-            
-            downloadCurrent() {
-                if (this.currentUrl && this.currentName) {
-                    downloadFile(this.currentUrl, this.currentName);
-                }
-            }
-            
-            openInNewWindow() {
-                if (this.currentUrl) {
-                    const newWindow = window.open(toHttps(this.currentUrl), `_blank`, `noopener,noreferrer`);
-                    if (newWindow) newWindow.opener = null;
-                }
+            modal.classList.add(`active`);
+        }
+
+        function clearDocxTimeout() {
+            if (window.docxPreviewTimeout) {
+                clearTimeout(window.docxPreviewTimeout);
+                window.docxPreviewTimeout = null;
             }
         }
-        
-        // Initialize attachment viewer
-        const attachmentViewer = new AttachmentViewer();
-        
-        // Global function to open attachments
-        function openAttachment(url, type, name) {
-            attachmentViewer.open(url, type, name);
+
+        function showDocxFallback(url, name) {
+            const iframe = document.getElementById(`docxPreviewFrame`);
+            const fallback = document.getElementById(`docxFallback`);
+            if (iframe && fallback) {
+                iframe.style.display = `none`;
+                fallback.style.display = `block`;
+            }
+            clearDocxTimeout();
         }
-        
-        // Attach click handlers to attachment items
-        document.addEventListener(`DOMContentLoaded`, () => {
-            const attachmentItems = document.querySelectorAll(`.attachment-item`);
-            
-            attachmentItems.forEach(item => {
-                item.addEventListener(`click`, function() {
-                    const url = this.getAttribute(`data-url`);
-                    const type = this.getAttribute(`data-type`);
-                    const name = this.getAttribute(`data-name`);
-                    
-                    if (url && type && name) {
-                        openAttachment(url, type, name);
-                    }
-                });
+
+        // 下载文件（保留原逻辑）
+        async function downloadFile(url, name) {
+          const safeUrl = toHttps(url);
+          const ua = navigator.userAgent || '';
+          const isIOS = /iPhone|iPad|iPod/i.test(ua);
+          const isAndroid = /Android/i.test(ua);
+          const isWeChat = /MicroMessenger/i.test(ua);
+          const isMobileSafari = isIOS && /Safari/i.test(ua) && !/CriOS|FxiOS/i.test(ua);
+
+          try {
+            if (isMobileSafari || isWeChat) {
+              window.open(safeUrl, '_blank', 'noopener');
+              showToast(`已在新窗口打开 ${name}`);
+              return;
+            }
+            const supportsDownloadAttr = 'download' in document.createElement('a');
+            if (!supportsDownloadAttr && (isAndroid || isIOS)) {
+              window.open(safeUrl, '_blank', 'noopener');
+              showToast(`已在新窗口打开 ${name}`);
+              return;
+            }
+            const res = await fetch(safeUrl, { mode: 'cors' });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const blob = await res.blob();
+            const objectUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = objectUrl;
+            a.download = name || 'download';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(objectUrl);
+            showToast(`正在下载 ${name}`);
+          } catch (e) {
+            window.open(safeUrl, '_blank', 'noopener');
+            showToast(`已在新窗口打开 ${name}`);
+          }
+        }
+
+        function closeAttachmentModal() {
+            document.getElementById(`attachmentModal`).classList.remove(`active`, 'fullscreen');
+            document.body.classList.remove('no-scroll');
+            clearDocxTimeout();
+        }
+
+        // 新增：附件全屏切换
+        function toggleAttachmentFullscreen(){
+            const modal = document.getElementById('attachmentModal');
+            modal.classList.toggle('fullscreen');
+            document.body.classList.toggle('no-scroll', modal.classList.contains('fullscreen'));
+        }
+
+        // 新增：图片缩放与拖拽（最小实现）
+        let imageZoomState = { scale: 1, x: 0, y: 0, img: null, dragging: false, startX:0, startY:0 };
+        function setupImageZoom(imgEl){
+            imageZoomState = { scale:1, x:0, y:0, img:imgEl, dragging:false, startX:0, startY:0 };
+            applyImageTransform();
+            imgEl.addEventListener('mousedown', onImgPointerDown);
+            imgEl.addEventListener('touchstart', onImgPointerDown, { passive:false });
+            document.addEventListener('mousemove', onImgPointerMove);
+            document.addEventListener('touchmove', onImgPointerMove, { passive:false });
+            document.addEventListener('mouseup', onImgPointerUp);
+            document.addEventListener('touchend', onImgPointerUp);
+            // 鼠标滚轮缩放（桌面端）
+            imgEl.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? -0.1 : 0.1;
+                zoomImage(delta);
+            }, { passive:false });
+        }
+        function zoomImage(delta){
+            if (!imageZoomState.img) return;
+            imageZoomState.scale = Math.max(1, Math.min(5, imageZoomState.scale + delta));
+            applyImageTransform();
+        }
+        function resetImageZoom(){
+            if (!imageZoomState.img) return;
+            imageZoomState.scale = 1; imageZoomState.x = 0; imageZoomState.y = 0;
+            applyImageTransform();
+        }
+        function applyImageTransform(){
+            const { img, scale, x, y } = imageZoomState;
+            if (!img) return;
+            img.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+        }
+        function onImgPointerDown(e){
+            if (!imageZoomState.img || imageZoomState.scale === 1) return;
+            e.preventDefault();
+            imageZoomState.dragging = true;
+            const p = getPoint(e);
+            imageZoomState.startX = p.x - imageZoomState.x;
+            imageZoomState.startY = p.y - imageZoomState.y;
+        }
+        function onImgPointerMove(e){
+            if (!imageZoomState.dragging) return;
+            e.preventDefault();
+            const p = getPoint(e);
+            imageZoomState.x = p.x - imageZoomState.startX;
+            imageZoomState.y = p.y - imageZoomState.startY;
+            applyImageTransform();
+        }
+        function onImgPointerUp(){ imageZoomState.dragging = false; }
+        function getPoint(e){
+            if (e.touches && e.touches[0]) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            return { x: e.clientX, y: e.clientY };
+        }
+
+        // 新增：PDF.js 载入与渲染（iOS 优先）
+        function isIOS(){ return /iPhone|iPad|iPod/i.test(navigator.userAgent || ''); }
+        function openExternal(url){ window.open(url, '_blank', 'noopener'); }
+
+        function loadPdfJsIfNeeded(){
+            if (window.pdfjsLib) return Promise.resolve();
+            return new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
+                s.onload = () => {
+                    try{
+                        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+                        resolve();
+                    }catch(err){ reject(err); }
+                };
+                s.onerror = reject;
+                document.head.appendChild(s);
             });
-            
-            // Initialize LeanCloud
-            initLeanCloud();
+        }
+
+        async function renderPdfWithPdfJs(url, containerId){
+            try{
+                await loadPdfJsIfNeeded();
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
+                const pdf = await window.pdfjsLib.getDocument({ url }).promise;
+                const maxPages = Math.min(pdf.numPages, 20); // 防止超多页面影响性能
+                for (let i=1; i<=maxPages; i++){
+                    const page = await pdf.getPage(i);
+                    const viewport = page.getViewport({ scale: 1.2 });
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    canvas.style.display = 'block';
+                    canvas.style.margin = '0 auto 8px auto';
+                    container.appendChild(canvas);
+                    await page.render({ canvasContext: ctx, viewport }).promise;
+                }
+                container.dataset.scale = '1';
+            }catch(err){
+                // 失败时降级为新窗口打开
+                openExternal(url);
+                showToast('PDF 预览失败，已在新窗口打开');
+            }
+        }
+        function pdfZoom(delta){
+            const c = document.getElementById('pdfCanvasContainer');
+            if (!c) return;
+            let s = parseFloat(c.dataset.scale || '1');
+            s = Math.max(0.5, Math.min(3, s + delta));
+            c.dataset.scale = String(s);
+            c.style.transform = `scale(${s})`;
+            c.style.transformOrigin = '0 0';
+        }
+        function pdfZoomReset(){
+            const c = document.getElementById('pdfCanvasContainer');
+            if (!c) return;
+            c.dataset.scale = '1';
+            c.style.transform = 'none';
+        }
+
+        // ========== 实时同步功能 ==========
+        function setupRealtimeSync() {
+            setInterval(async () => {
+                await loadTasks();
+            }, 30000);
+        }
+
+        // ========== 工具函数 ==========
+        function showToast(message) {
+            const toast = document.getElementById(`toast`);
+            toast.textContent = message;
+            toast.classList.add(`show`);
+            setTimeout(() => { toast.classList.remove(`show`); }, 2000);
+        }
+
+        function toHttps(url) {
+          try {
+            if (!url) return '';
+            return url.replace(/^http:/i, 'https:');
+          } catch (e) { return url; }
+        }
+
+        function fileExt(name) {
+          if (!name) return '';
+          const idx = name.lastIndexOf('.');
+          return idx >= 0 ? name.substring(idx + 1).toLowerCase() : '';
+        }
+        function isPDF(att) {
+          return att.type === 'application/pdf' || /\.pdf$/i.test(att.name || '');
+        }
+        function isDOCX(att) {
+          return att.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                 || /\.docx$/i.test(att.name || '');
+        }
+        function isDOC(att) {
+          return att.type === 'application/msword' || /\.doc$/i.test(att.name || '');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement(`div`);
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDate(date) {
+            const d = new Date(date);
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            if (d.toDateString() === today.toDateString()) return `今天`;
+            if (d.toDateString() === tomorrow.toDateString()) return `明天`;
+            return `${d.getMonth() + 1}月${d.getDate()}日`;
+        }
+
+        function getFileIcon(type, name) {
+            const ext = fileExt(name || '');
+            if (type.startsWith('image/')) return '🖼️';
+            if (type.startsWith('video/')) return '🎬';
+            if (type.startsWith('audio/')) return '🎵';
+            if (type === 'application/pdf' || ext === 'pdf') return '📄 PDF';
+            if (type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || ext === 'docx') return '📄 DOCX';
+            if (type === 'application/msword' || ext === 'doc') return '📄 DOC';
+            return '📎';
+        }
+
+        // ========== 页面加载初始化 ==========
+        window.addEventListener(`DOMContentLoaded`, () => {
+            const familyId = localStorage.getItem(`familyId`);
+            const userRole = localStorage.getItem(`userRole`);
+            if (familyId && userRole) {
+                currentRole = userRole;
+                currentFamily = { id: familyId };
+                document.getElementById(`loginPage`).classList.add(`hidden`);
+                document.getElementById(`mainApp`).classList.remove(`hidden`);
+                initApp();
+            }
         });
-        
-        // FAB click handler
-        document.querySelector(`.fab`).addEventListener(`click`, () => {
-            alert(`添加新任务功能待实现`);
+
+        // ========== 安全功能 ==========
+        document.addEventListener('click', (e) => {
+            const a = e.target.closest('a');
+            if (!a) return;
+            const href = a.getAttribute('href') || '';
+            const isData = href.startsWith('data:');
+            const isSameOrigin = href.startsWith(location.origin);
+            const isDownload = a.classList.contains('download-btn') || a.getAttribute('download') !== null || a.dataset.allowExternal === 'true';
+            if (!isData && !isSameOrigin && !isDownload) {
+                e.preventDefault();
+                showToast(`为了安全,已禁用外部链接`);
+            }
         });
     </script>
+    
+    <!-- 页面生成日期: 2025-12-11 -->
 </body>
 </html>
